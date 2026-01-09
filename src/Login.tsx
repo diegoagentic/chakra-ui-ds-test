@@ -1,122 +1,324 @@
 import {
     Box,
     Button,
-    Card,
-    CardBody,
-    CardHeader,
     Heading,
     Text,
     FormControl,
     FormLabel,
     Input,
-    Select,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
     InputGroup,
     InputRightElement,
+    Flex,
+    Icon,
+    Image,
+    Stack,
+    Divider,
+    Link,
+    useColorModeValue,
     List,
     ListItem,
-    ListIcon,
-    Flex,
-    VStack,
-    HStack
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem
 } from '@chakra-ui/react'
-import { ViewIcon, ViewOffIcon, InfoIcon, LockIcon } from '@chakra-ui/icons'
+import { ViewIcon, ViewOffIcon, ArrowForwardIcon, ChevronDownIcon } from '@chakra-ui/icons'
+import { FaBuilding } from 'react-icons/fa'
 import { useState } from 'react'
 
+const organizations = [
+    { name: 'Strata Manufacturing HQ', users: 245, type: 'Primary workspace' },
+    { name: 'Strata Sales Division', users: 120, type: 'Regional hub' },
+    { name: 'Strata Logistics Link', users: 85, type: 'Distribution center' }
+]
 
 export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
     const [show, setShow] = useState(false)
+    const [isRegistering, setIsRegistering] = useState(false)
+    const [selectedOrg, setSelectedOrg] = useState(organizations[0])
     const handleClick = () => setShow(!show)
 
+    const handleAction = () => {
+        onLoginSuccess()
+    }
+
+    // Color Mode Values
+    const bgLeft = useColorModeValue('white', 'gray.900')
+    const textPrimary = useColorModeValue('gray.900', 'white')
+    const textSecondary = useColorModeValue('gray.600', 'gray.400')
+
+    const btnPrimaryBg = useColorModeValue('gray.900', 'white')
+    const btnPrimaryColor = useColorModeValue('white', 'gray.900')
+    const btnSecondaryBorder = useColorModeValue('gray.300', 'whiteAlpha.400')
+
     return (
-        <Flex minH="100vh" align="center" justify="center" bg="gray.100" p={4}>
-            <Card maxW="480px" w="full" boxShadow="xl">
-                <CardHeader textAlign="center" pb={2}>
-                    <Flex justify="center" align="center" h="16" w="32" bg="gray.200" mx="auto" mb={4}>
-                        <Text fontSize="xs" fontWeight="semibold" letterSpacing="widest" textTransform="uppercase" color="gray.400">Client Logo</Text>
+        <Flex minH="100vh" direction={{ base: 'column', lg: 'row' }}>
+            {/* Left Side - Branding (Responsive) */}
+            <Box
+                w={{ base: 'full', lg: '50%' }}
+                bg={bgLeft}
+                color={textPrimary}
+                p={{ base: 8, lg: 20 }}
+                position="relative"
+                overflow="hidden"
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                transition="background 0.3s"
+            >
+                {/* Decorative Subtle Gradient */}
+                <Box
+                    position="absolute"
+                    inset={0}
+                    bgGradient={useColorModeValue("linear(to-br, gray.50, gray.100)", "linear(to-br, gray.800, gray.900)")}
+                    opacity={0.5}
+                    zIndex={0}
+                />
+
+                <Stack spacing={8} position="relative" zIndex={1} maxW="lg">
+                    <Flex align="center" gap={3} mb={8}>
+                        <Image src="/logo-on-light.jpg" alt="Strata" h={10} display={useColorModeValue('block', 'none')} />
+                        <Image src="/logo-on-dark.jpg" alt="Strata" h={10} display={useColorModeValue('none', 'block')} />
                     </Flex>
-                    <Heading size="lg" fontWeight="normal">Sign In</Heading>
-                    <Text color="gray.500">Access your workspace</Text>
-                </CardHeader>
-                <CardBody>
-                    <VStack spacing={5}>
-                        <Alert status="error" variant="subtle" flexDirection="column" alignItems="start" p={3} bg="red.50" borderColor="red.100" borderWidth="1px" rounded="md">
-                            <HStack>
-                                <AlertIcon color="red.500" boxSize={4} />
-                                <AlertTitle fontSize="sm" fontWeight="bold" color="gray.900">Authentication Failed for selected Organization</AlertTitle>
-                            </HStack>
-                            <AlertDescription fontSize="xs" color="gray.600" ml={6} mt={1}>
-                                Please check your credentials and organization selection
-                            </AlertDescription>
-                        </Alert>
 
-                        <FormControl>
-                            <FormLabel fontSize="sm" fontWeight="medium">Select Organization</FormLabel>
-                            <Select placeholder="Choose your workspace..." size="lg" fontSize="md">
-                                <option value="hq">Strata Manufacturing HQ</option>
-                                <option value="west">Strata West Coast Division</option>
-                                <option value="eu">Strata Europe Operations</option>
-                            </Select>
-                        </FormControl>
+                    <Heading as="h1" size="3xl" lineHeight="tight">
+                        Transform your workflow with Strata
+                    </Heading>
 
-                        <FormControl>
-                            <FormLabel fontSize="sm" fontWeight="medium">Work Email</FormLabel>
-                            <Input type="email" defaultValue="maria.gonzalez@estrata.com" size="lg" />
-                        </FormControl>
+                    <Text fontSize="lg" color={textSecondary} lineHeight="tall">
+                        At Strata, we provide comprehensive solutions for contract dealers and manufacturers, combining sales enablement, financial services, and expert consulting with cutting-edge technology to optimize operations and drive business growth.
+                    </Text>
 
-                        <FormControl>
-                            <FormLabel fontSize="sm" fontWeight="medium">Password</FormLabel>
-                            <InputGroup size="lg">
-                                <Input
-                                    pr="4.5rem"
-                                    type={show ? 'text' : 'password'}
-                                    defaultValue="SecurePass2025!"
-                                />
-                                <InputRightElement width="4.5rem">
-                                    <Button h="1.75rem" size="sm" onClick={handleClick} variant="ghost">
-                                        {show ? <ViewOffIcon /> : <ViewIcon />}
+                    <Stack direction="row" spacing={4} pt={4}>
+                        <Button
+                            bg={btnPrimaryBg}
+                            color={btnPrimaryColor}
+                            rounded="full"
+                            px={8}
+                            py={6}
+                            _hover={{ opacity: 0.9 }}
+                            rightIcon={<ArrowForwardIcon boxSize={4} />}
+                        >
+                            Talk to an Expert
+                        </Button>
+                        <Button
+                            variant="outline"
+                            color={textPrimary}
+                            rounded="full"
+                            px={8}
+                            py={6}
+                            borderColor={btnSecondaryBorder}
+                            _hover={{ bg: useColorModeValue('gray.100', 'whiteAlpha.100') }}
+                        >
+                            Browse all Services
+                        </Button>
+                    </Stack>
+                </Stack>
+            </Box>
+
+            {/* Right Side - Form */}
+            <Flex
+                w={{ base: 'full', lg: '50%' }}
+                align="center"
+                justify="center"
+                p={8}
+                bgImage="url('/login-bg.jpg')"
+                bgSize="cover"
+                bgPosition="center"
+                position="relative"
+            >
+                {/* Dark Overlay */}
+                <Box position="absolute" inset={0} bg="blackAlpha.600" backdropFilter="blur(2px)" zIndex={0} />
+
+                <Box w="full" maxW="440px" zIndex={1} bg="blackAlpha.600" backdropFilter="blur(20px)" p={8} borderRadius="2xl" border="1px solid" borderColor="whiteAlpha.100" boxShadow="2xl">
+                    <Stack spacing={6}>
+                        <Stack spacing={2}>
+                            <Heading size="lg" color="white">
+                                {isRegistering ? 'Create Account' : 'Welcome Back!'}
+                            </Heading>
+                            <Flex direction={{ base: 'column', sm: 'row' }} gap={1} fontSize="sm" color="gray.400">
+                                <Text>{isRegistering ? 'Already have an account?' : "Don't have an account?"}</Text>
+                                <Link
+                                    fontWeight="bold"
+                                    color="white"
+                                    _hover={{ textDecoration: 'underline' }}
+                                    onClick={() => setIsRegistering(!isRegistering)}
+                                >
+                                    {isRegistering ? 'Login now' : 'Create a new account now,'}
+                                    {!isRegistering && <Text as="span" fontWeight="normal" color="gray.400"> it's FREE! Takes less than a minute.</Text>}
+                                </Link>
+                            </Flex>
+                        </Stack>
+
+                        <Stack spacing={5}>
+                            {!isRegistering && (
+                                <>
+                                    <Button
+                                        w="full"
+                                        h={12}
+                                        variant="outline"
+                                        borderColor="whiteAlpha.200"
+                                        color="white"
+                                        fontWeight="medium"
+                                        _hover={{ bg: 'whiteAlpha.100' }}
+                                        onClick={handleAction}
+                                        leftIcon={<Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" boxSize={5} filter="brightness(0.9) contrast(1.2)" />}
+                                    >
+                                        Login with Google
                                     </Button>
-                                </InputRightElement>
-                            </InputGroup>
-                        </FormControl>
 
-                        <Box bg="gray.50" p={3} rounded="md" border="1px" borderColor="gray.100" w="full">
-                            <HStack fontSize="xs" color="gray.500" fontWeight="medium" mb={2}>
-                                <InfoIcon boxSize={3} /> <Text>Password must contain:</Text>
-                            </HStack>
-                            <List spacing={1} pl={1}>
-                                {['Minimum 8 characters', 'At least one uppercase letter', 'At least one number', 'At least one special character (!@#$%)'].map((req, i) => (
-                                    <ListItem key={i} fontSize="10px" color="gray.500" display="flex" alignItems="center">
-                                        <ListIcon as="div" w={1} h={1} rounded="full" bg="gray.400" mr={2} />
-                                        {req}
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Box>
+                                    <Flex align="center">
+                                        <Divider borderColor="whiteAlpha.200" />
+                                        <Text px={3} fontSize="xs" fontWeight="medium" textTransform="uppercase" color="gray.500" whiteSpace="nowrap">
+                                            Or login with email
+                                        </Text>
+                                        <Divider borderColor="whiteAlpha.200" />
+                                    </Flex>
+                                </>
+                            )}
 
-                        <Button onClick={onLoginSuccess} w="full" bg="gray.900" color="white" _hover={{ bg: 'gray.800' }} size="lg">
-                            Log In
-                        </Button>
+                            <Stack spacing={4}>
+                                {isRegistering && (
+                                    <FormControl>
+                                        <FormLabel color="gray.300" fontSize="sm">Select Organization</FormLabel>
+                                        <Menu matchWidth>
+                                            <MenuButton
+                                                as={Button}
+                                                w="full"
+                                                h="auto"
+                                                p={3}
+                                                borderRadius="xl"
+                                                bg="whiteAlpha.100"
+                                                border="1px solid"
+                                                borderColor="whiteAlpha.200"
+                                                _hover={{ bg: 'whiteAlpha.200' }}
+                                                _active={{ bg: 'whiteAlpha.200' }}
+                                                textAlign="left"
+                                            >
+                                                <Flex align="center" gap={3}>
+                                                    <Flex h={10} w={10} bg="whiteAlpha.100" borderRadius="lg" align="center" justify="center">
+                                                        <Icon as={FaBuilding} boxSize={5} color="gray.200" />
+                                                    </Flex>
+                                                    <Box flex="1" overflow="hidden">
+                                                        <Flex align="center" gap={2}>
+                                                            <Text fontWeight="semibold" fontSize="sm" color="white" isTruncated>{selectedOrg.name}</Text>
+                                                            <Box w={2} h={2} borderRadius="full" bg="green.400" flexShrink={0} />
+                                                        </Flex>
+                                                        <Text fontSize="xs" color="gray.400" isTruncated>{selectedOrg.type} • {selectedOrg.users} users</Text>
+                                                    </Box>
+                                                    <Icon as={ChevronDownIcon} boxSize={5} color="gray.400" />
+                                                </Flex>
+                                            </MenuButton>
+                                            <MenuList bg="gray.800" borderColor="whiteAlpha.200" p={2}>
+                                                {organizations.map((org, index) => (
+                                                    <MenuItem
+                                                        key={index}
+                                                        bg="transparent"
+                                                        _hover={{ bg: 'whiteAlpha.100' }}
+                                                        borderRadius="md"
+                                                        onClick={() => setSelectedOrg(org)}
+                                                    >
+                                                        <Flex align="center" gap={3} w="full">
+                                                            <Flex h={8} w={8} bg="whiteAlpha.100" borderRadius="md" align="center" justify="center">
+                                                                <Icon as={FaBuilding} boxSize={3} color="gray.400" />
+                                                            </Flex>
+                                                            <Box>
+                                                                <Text fontWeight="medium" fontSize="sm" color="white">{org.name}</Text>
+                                                                <Text fontSize="xs" color="gray.500">{org.type}</Text>
+                                                            </Box>
+                                                        </Flex>
+                                                    </MenuItem>
+                                                ))}
+                                            </MenuList>
+                                        </Menu>
+                                    </FormControl>
+                                )}
 
-                        <Button variant="link" size="sm" color="gray.500" fontWeight="normal">
-                            Forgot Password?
-                        </Button>
+                                <FormControl>
+                                    <FormLabel color="gray.300" fontSize="sm">{isRegistering ? 'Work Email' : 'Email'}</FormLabel>
+                                    <Input
+                                        type="email"
+                                        placeholder="name@example.com"
+                                        defaultValue="hisalim.ux@gmail.com"
+                                        size="lg"
+                                        bg="whiteAlpha.50"
+                                        border="1px solid"
+                                        borderColor="whiteAlpha.100"
+                                        color="white"
+                                        _placeholder={{ color: 'gray.500' }}
+                                        _focus={{ borderColor: 'whiteAlpha.400', bg: 'whiteAlpha.100' }}
+                                    />
+                                </FormControl>
+                                <FormControl>
+                                    <FormLabel color="gray.300" fontSize="sm">Password</FormLabel>
+                                    <InputGroup size="lg">
+                                        <Input
+                                            pr="4.5rem"
+                                            type={show ? 'text' : 'password'}
+                                            placeholder="Password"
+                                            defaultValue="Password123!"
+                                            bg="whiteAlpha.50"
+                                            border="1px solid"
+                                            borderColor="whiteAlpha.100"
+                                            color="white"
+                                            _placeholder={{ color: 'gray.500' }}
+                                            _focus={{ borderColor: 'whiteAlpha.400', bg: 'whiteAlpha.100' }}
+                                        />
+                                        <InputRightElement width="4.5rem">
+                                            <Button h="1.75rem" size="sm" onClick={handleClick} variant="ghost" color="gray.400" _hover={{ bg: 'whiteAlpha.100', color: 'white' }}>
+                                                {show ? <ViewOffIcon /> : <ViewIcon />}
+                                            </Button>
+                                        </InputRightElement>
+                                    </InputGroup>
+                                </FormControl>
 
-                        <Flex w="full" pt={4} mt={2} borderTop="1px" borderColor="gray.100" justify="space-between" align="center" fontSize="xs" color="gray.400">
-                            <HStack spacing={3}>
-                                <Text _hover={{ color: 'gray.600', cursor: 'pointer' }}>Need access?</Text>
-                                <Text _hover={{ color: 'gray.600', cursor: 'pointer' }}>Contact Admin</Text>
-                            </HStack>
-                            <HStack spacing={1}>
-                                <LockIcon boxSize={3} /> <Text>Secure Login</Text>
-                            </HStack>
-                        </Flex>
-                    </VStack>
-                </CardBody>
-            </Card>
+                                {isRegistering && (
+                                    <Box bg="rgba(34, 197, 94, 0.1)" p={4} borderRadius="lg" border="1px solid" borderColor="rgba(34, 197, 94, 0.2)">
+                                        <Flex gap={2} alignItems="flex-start">
+                                            <Icon viewBox="0 0 24 24" color="green.400" mt="3px" boxSize={4} fill="none" stroke="currentColor" strokeWidth={2}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </Icon>
+                                            <Box>
+                                                <Text fontSize="sm" fontWeight="medium" color="green.200" mb={1}>Password requirements met:</Text>
+                                                <List spacing={1} color="green.300" fontSize="xs">
+                                                    <ListItem display="flex" alignItems="center" gap={2}>
+                                                        <Icon viewBox="0 0 24 24" color="green.400" boxSize={3} fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></Icon> Minimum 8 characters
+                                                    </ListItem>
+                                                    <ListItem display="flex" alignItems="center" gap={2}>
+                                                        <Icon viewBox="0 0 24 24" color="green.400" boxSize={3} fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></Icon> At least one uppercase letter
+                                                    </ListItem>
+                                                    <ListItem display="flex" alignItems="center" gap={2}>
+                                                        <Icon viewBox="0 0 24 24" color="green.400" boxSize={3} fill="none" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></Icon> At least one number
+                                                    </ListItem>
+                                                </List>
+                                            </Box>
+                                        </Flex>
+                                    </Box>
+                                )}
+                            </Stack>
+
+                            <Button
+                                size="lg"
+                                bg="white"
+                                color="gray.900"
+                                _hover={{ bg: 'gray.200' }}
+                                onClick={handleAction}
+                                shadow="lg"
+                            >
+                                {isRegistering ? 'Create Account' : 'Login Now'}
+                            </Button>
+
+                            {!isRegistering && (
+                                <Box textAlign="center">
+                                    <Text fontSize="sm" color="gray.500" fontWeight="medium">
+                                        Forget password <Link color="gray.300" textDecoration="underline" textUnderlineOffset={2} _hover={{ color: 'white' }} onClick={() => { }}>Click here</Link>
+                                    </Text>
+                                </Box>
+                            )}
+                        </Stack>
+                    </Stack>
+                </Box>
+            </Flex>
         </Flex>
     )
 }

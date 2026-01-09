@@ -4,7 +4,7 @@ import {
     Avatar, IconButton, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
     Card, CardBody, CardHeader, VStack, Divider, Tag, SimpleGrid, ButtonGroup, useColorMode, useColorModeValue, Collapse,
     Menu, MenuButton, MenuList, MenuItem, MenuDivider, CheckboxGroup, Checkbox,
-    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton
+    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Image
 } from '@chakra-ui/react'
 import {
     SearchIcon, BellIcon, CalendarIcon, AddIcon, CopyIcon, EmailIcon,
@@ -42,7 +42,7 @@ const trackingSteps = [
 ]
 
 export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: () => void, onNavigateToDetail: () => void }) {
-    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isMainOpen, setIsMainOpen] = useState(true)
     const [isOperationsOpen, setIsOperationsOpen] = useState(true)
     const { colorMode, toggleColorMode } = useColorMode()
@@ -93,9 +93,11 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                 display={{ base: 'none', md: 'flex' }}
             >
                 <Flex h="16" align="center" px="6" borderBottom="1px" borderColor="gray.100">
-                    <Flex align="center" justify="center" w="24" h="8" bg="gray.100" fontSize="xs" fontWeight="bold" letterSpacing="widest" textTransform="uppercase" color="gray.500">
-                        Tenant Logo
-                    </Flex>
+                    <Image
+                        src={useColorModeValue('/logo-on-light.jpg', '/logo-on-dark.jpg')}
+                        h="32px"
+                        alt="Strata"
+                    />
                 </Flex>
 
                 <VStack flex="1" p="4" align="stretch" spacing="4" overflowY="auto">
@@ -152,7 +154,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                 </VStack>
 
                 <Box p="4" borderTop="1px" borderColor="gray.100">
-                    <Flex align="center" gap="3" p="2" borderRadius="md" _hover={{ bg: 'gray.50' }}>
+                    <Flex align="center" gap="3" p="2" borderRadius="md" _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}>
                         <Avatar size="sm" name="Jhon Doe" bg="gray.300" />
                         <Box flex="1" overflow="hidden">
                             <Text fontSize="sm" fontWeight="medium" isTruncated>Jhon Doe</Text>
