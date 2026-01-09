@@ -4,14 +4,14 @@ import {
     Avatar, IconButton, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
     Card, CardBody, CardHeader, VStack, Divider, Tag, SimpleGrid, ButtonGroup, useColorMode, useColorModeValue, Collapse,
     Menu, MenuButton, MenuList, MenuItem, MenuDivider, CheckboxGroup, Checkbox,
-    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Image
+    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Image, Tooltip as ChakraTooltip
 } from '@chakra-ui/react'
 import {
     SearchIcon, BellIcon, CalendarIcon, AddIcon, CopyIcon, EmailIcon,
     ViewIcon, ArrowForwardIcon, ChevronRightIcon, SettingsIcon, MoonIcon, SunIcon, ChevronDownIcon, EditIcon, DeleteIcon
 } from '@chakra-ui/icons'
-import { FaHome, FaBox, FaIndustry, FaClipboardList, FaTruck, FaTh, FaList, FaSignOutAlt, FaUser, FaMapMarkerAlt, FaCheckCircle, FaClock } from 'react-icons/fa'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
+import { FaHome, FaBox, FaIndustry, FaClipboardList, FaTruck, FaTh, FaList, FaSignOutAlt, FaUser, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChartLine } from 'react-icons/fa'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts'
 
 const inventoryData = [
     { name: 'Seating', value: 78, amt: 480 },
@@ -43,8 +43,6 @@ const trackingSteps = [
 
 export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: () => void, onNavigateToDetail: () => void }) {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [isMainOpen, setIsMainOpen] = useState(true)
-    const [isOperationsOpen, setIsOperationsOpen] = useState(true)
     const { colorMode, toggleColorMode } = useColorMode()
     const ThemeIcon = colorMode === 'light' ? MoonIcon : SunIcon
 
@@ -73,578 +71,510 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
     }, [searchQuery, selectedStatuses])
 
     const bgMain = useColorModeValue('gray.50', 'gray.900')
-    const bgSidebar = useColorModeValue('white', 'gray.800')
-    const bgCard = useColorModeValue('#FFFFFF', '#1A202C') // Explicit hex for Recharts compatibility
-    const borderColor = useColorModeValue('#E2E8F0', '#2D3748') // Explicit hex for Recharts compatibility
+    const bgCard = useColorModeValue('white', 'gray.900')
+    const borderColor = useColorModeValue('gray.200', 'gray.800')
     const textColorMuted = useColorModeValue('gray.500', 'gray.400')
     const textColorMain = useColorModeValue('gray.900', 'white')
     const chartFill = useColorModeValue('#1A202C', '#E2E8F0')
     const chartStroke = useColorModeValue('#1A202C', '#E2E8F0')
 
+    // Glassmorphism Styles
+    const navBg = useColorModeValue('rgba(255, 255, 255, 0.7)', 'rgba(0, 0, 0, 0.6)')
+    const navBorder = useColorModeValue('rgba(255, 255, 255, 0.5)', 'rgba(255, 255, 255, 0.1)')
+    const navShadow = "0 8px 32px 0 rgba(31, 38, 135, 0.07)"
+
     return (
-        <Flex minH="100vh" bg={bgMain}>
-            {/* Sidebar */}
-            <Flex
-                direction="column"
-                w="250px"
-                bg={bgSidebar}
-                borderRight="1px"
-                borderColor={borderColor}
-                display={{ base: 'none', md: 'flex' }}
-            >
-                <Flex h="16" align="center" px="6" borderBottom="1px" borderColor="gray.100">
-                    <Image
-                        src={useColorModeValue('/logo-on-light.jpg', '/logo-on-dark.jpg')}
-                        h="32px"
-                        alt="Strata"
-                    />
-                </Flex>
-
-                <VStack flex="1" p="4" align="stretch" spacing="4" overflowY="auto">
-                    {/* Main Category */}
-                    <Box>
-                        <Flex
-                            align="center"
-                            justify="space-between"
-                            w="full"
-                            px="3"
-                            py="2"
-                            cursor="pointer"
-                            onClick={() => setIsMainOpen(!isMainOpen)}
-                            role="group"
-                            borderRadius="md"
-                            _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-                        >
-                            <Text fontSize="xs" fontWeight="bold" letterSpacing="widest" textTransform="uppercase" color="gray.500" _groupHover={{ color: textColorMain }}>Main</Text>
-                            {isMainOpen ? <ChevronDownIcon w={3} h={3} color="gray.500" /> : <ChevronRightIcon w={3} h={3} color="gray.500" />}
-                        </Flex>
-                        <Collapse in={isMainOpen} animateOpacity>
-                            <VStack align="stretch" spacing="1" mt="1" px="2">
-                                <Button variant="ghost" justifyContent="flex-start" leftIcon={<FaHome />} colorScheme="gray" isActive>Overview</Button>
-                            </VStack>
-                        </Collapse>
+        <Box minH="100vh" bg={bgMain} fontFamily="body">
+            {/* Floating Capsule Navbar */}
+            <Box position="fixed" top="6" left="50%" transform="translateX(-50%)" zIndex="1000">
+                <Flex
+                    align="center"
+                    gap="2"
+                    p="2"
+                    borderRadius="full"
+                    bg={navBg}
+                    backdropFilter="blur(16px)"
+                    border="1px solid"
+                    borderColor={navBorder}
+                    boxShadow={navShadow}
+                >
+                    {/* Logo */}
+                    <Box px="3">
+                        <Image
+                            src={useColorModeValue('/logo-on-light.jpg', '/logo-on-dark.jpg')}
+                            h="24px"
+                            alt="Strata"
+                        />
                     </Box>
+                    <Box w="1px" h="24px" bg={useColorModeValue('gray.300', 'whiteAlpha.300')} mx="1" />
 
-                    {/* Operations Category */}
-                    <Box>
-                        <Flex
-                            align="center"
-                            justify="space-between"
-                            w="full"
-                            px="3"
-                            py="2"
-                            cursor="pointer"
-                            onClick={() => setIsOperationsOpen(!isOperationsOpen)}
-                            role="group"
-                            borderRadius="md"
-                            _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-                        >
-                            <Text fontSize="xs" fontWeight="bold" letterSpacing="widest" textTransform="uppercase" color="gray.500" _groupHover={{ color: textColorMain }}>Operations</Text>
-                            {isOperationsOpen ? <ChevronDownIcon w={3} h={3} color="gray.500" /> : <ChevronRightIcon w={3} h={3} color="gray.500" />}
-                        </Flex>
-                        <Collapse in={isOperationsOpen} animateOpacity>
-                            <VStack align="stretch" spacing="1" mt="1" px="2">
-                                <Button variant="ghost" justifyContent="flex-start" leftIcon={<FaBox />} color="gray.600">Inventory</Button>
-                                <Button variant="ghost" justifyContent="flex-start" leftIcon={<FaIndustry />} color="gray.600">Production</Button>
-                                <Button variant="ghost" justifyContent="flex-start" leftIcon={<FaClipboardList />} color="gray.600">Orders</Button>
-                                <Button variant="ghost" justifyContent="flex-start" leftIcon={<FaTruck />} color="gray.600">Logistics</Button>
-                            </VStack>
-                        </Collapse>
-                    </Box>
-                </VStack>
-
-                <Box p="4" borderTop="1px" borderColor="gray.100">
-                    <Flex align="center" gap="3" p="2" borderRadius="md" _hover={{ bg: useColorModeValue('gray.50', 'gray.700') }}>
-                        <Avatar size="sm" name="Jhon Doe" bg="gray.300" />
-                        <Box flex="1" overflow="hidden">
-                            <Text fontSize="sm" fontWeight="medium" isTruncated>Jhon Doe</Text>
-                            <Text fontSize="xs" color="gray.500">Admin</Text>
-                        </Box>
-                        <IconButton aria-label="Logout" icon={<FaSignOutAlt />} size="xs" variant="ghost" onClick={onLogout} />
+                    {/* Nav Items */}
+                    <Flex gap="1">
+                        <NavItem icon={FaHome} label="Overview" isActive />
+                        <NavItem icon={FaBox} label="Inventory" />
+                        <NavItem icon={FaChartLine} label="Production" />
+                        <NavItem icon={FaClipboardList} label="Orders" />
                     </Flex>
-                </Box>
-            </Flex>
+
+                    <Box w="1px" h="24px" bg={useColorModeValue('gray.300', 'whiteAlpha.300')} mx="1" />
+
+                    {/* Actions */}
+                    <Flex align="center" gap="2" pr="2">
+                        <IconButton
+                            aria-label="Toggle Theme"
+                            icon={<ThemeIcon />}
+                            onClick={toggleColorMode}
+                            variant="ghost"
+                            rounded="full"
+                            size="sm"
+                            color="gray.500"
+                            _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}
+                        />
+                        <Menu>
+                            <MenuButton as={Button} rounded="full" p="1" variant="ghost" _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}>
+                                <Avatar size="xs" name="Jhon Doe" bgGradient="linear(to-r, blue.400, purple.500)" color="white" fontWeight="bold" />
+                            </MenuButton>
+                            <MenuList bg={useColorModeValue('whiteAlpha.900', 'blackAlpha.900')} backdropFilter="blur(10px)" borderColor={borderColor} shadow="lg" p="2" borderRadius="xl">
+                                <Box px="3" py="2">
+                                    <Text fontSize="sm" fontWeight="bold" color={textColorMain}>Jhon Doe</Text>
+                                    <Text fontSize="xs" color="gray.500">Admin</Text>
+                                </Box>
+                                <MenuDivider />
+                                <MenuItem icon={<FaSignOutAlt />} onClick={onLogout} color="red.500" borderRadius="md">Sign Out</MenuItem>
+                            </MenuList>
+                        </Menu>
+                    </Flex>
+                </Flex>
+            </Box>
+
 
             {/* Main Content */}
-            <Flex direction="column" flex="1" overflow="hidden">
-                {/* Header */}
-                <Flex h="16" bg={bgCard} borderBottom="1px" borderColor={borderColor} align="center" justify="space-between" px="8">
-                    <Flex align="center" gap="2" fontSize="sm" color={textColorMuted}>
-                        <Text>Dashboard</Text>
-                        <ChevronRightIcon />
-                        <Text color={textColorMain} fontWeight="medium">Operational Overview</Text>
-                    </Flex>
-                    <Flex align="center" gap="4">
-                        <InputGroup w="64" size="sm">
+            <Box pt="24" pb="12" px={{ base: 4, xl: 8 }} maxW="1400px" mx="auto">
+                {/* Page Header */}
+                <Flex flexDir={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'start', md: 'center' }} mb="8" gap="4">
+                    <Box>
+                        <Heading size="lg" fontWeight="bold" bgGradient={useColorModeValue("linear(to-r, gray.900, gray.600)", "linear(to-r, white, gray.400)")} bgClip="text">
+                            Operational Overview
+                        </Heading>
+                        <Text color="gray.500" mt="1">Jan 1 - Jan 31, 2025</Text>
+                    </Box>
+                    <Flex gap="3" align="center">
+                        <InputGroup w={{ base: "full", md: "64" }}>
                             <InputLeftElement pointerEvents="none"><SearchIcon color="gray.400" /></InputLeftElement>
-                            <Input placeholder="Search..." borderRadius="md" />
+                            <Input
+                                placeholder="Search everything..."
+                                bg={useColorModeValue('whiteAlpha.600', 'blackAlpha.300')}
+                                backdropFilter="blur(8px)"
+                                border="1px solid"
+                                borderColor={borderColor}
+                                _focus={{ borderColor: 'blue.400', ring: 'none' }}
+                                borderRadius="xl"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </InputGroup>
-                        <Button size="sm" variant="outline" leftIcon={<CalendarIcon />}>Jan 1 - Jan 31, 2025</Button>
-                        <IconButton aria-label="Toggle Theme" icon={<ThemeIcon />} onClick={toggleColorMode} variant="ghost" size="sm" color="gray.500" />
-                        <IconButton aria-label="Notifications" icon={<BellIcon />} variant="ghost" size="sm" color="gray.500" />
+                        <IconButton aria-label="Notifications" icon={<BellIcon />} variant="outline" borderColor={borderColor} bg={useColorModeValue('whiteAlpha.600', 'blackAlpha.300')} borderRadius="xl" color="gray.500" />
                     </Flex>
                 </Flex>
 
-                {/* Scrollable Area */}
-                <Box flex="1" overflowY="auto" p="8">
-                    <VStack spacing="8" align="stretch">
+                {/* KPI Cards */}
+                <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }} gap="6" mb="8">
+                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
+                        <CardBody p="6">
+                            <Flex justify="space-between" align="start">
+                                <Box>
+                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Total Inventory</Text>
+                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>$1.2M</Text>
+                                </Box>
+                                <Flex p="2" rounded="lg" bg="blue.50" color="blue.500" _dark={{ bg: 'blue.900', color: 'blue.200' }}>
+                                    <FaBox size="20px" />
+                                </Flex>
+                            </Flex>
+                            <Flex align="center" mt="4" fontSize="sm" color="green.500">
+                                <ArrowForwardIcon transform="rotate(-45deg)" mr="1" />
+                                <Text fontWeight="medium">+0.2%</Text>
+                                <Text color="gray.500" ml="1">vs last month</Text>
+                            </Flex>
+                        </CardBody>
+                    </Card>
+                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
+                        <CardBody p="6">
+                            <Flex justify="space-between" align="start">
+                                <Box>
+                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Efficiency</Text>
+                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>88%</Text>
+                                </Box>
+                                <Flex p="2" rounded="lg" bg="purple.50" color="purple.500" _dark={{ bg: 'purple.900', color: 'purple.200' }}>
+                                    <FaChartLine size="20px" />
+                                </Flex>
+                            </Flex>
+                            <Flex align="center" mt="4" fontSize="sm" color="green.500">
+                                <ArrowForwardIcon transform="rotate(-45deg)" mr="1" />
+                                <Text fontWeight="medium">+3.5%</Text>
+                                <Text color="gray.500" ml="1">vs last month</Text>
+                            </Flex>
+                        </CardBody>
+                    </Card>
+                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
+                        <CardBody p="6">
+                            <Flex justify="space-between" align="start">
+                                <Box>
+                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Pending Orders</Text>
+                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>142</Text>
+                                </Box>
+                                <Flex p="2" rounded="lg" bg="orange.50" color="orange.500" _dark={{ bg: 'orange.900', color: 'orange.200' }}>
+                                    <FaClipboardList size="20px" />
+                                </Flex>
+                            </Flex>
+                            <Flex align="center" mt="4" fontSize="sm" color="gray.500">
+                                <Text fontWeight="medium">-12</Text>
+                                <Text ml="1">vs yesterday</Text>
+                            </Flex>
+                        </CardBody>
+                    </Card>
+                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
+                        <CardBody p="6">
+                            <Flex justify="space-between" align="start">
+                                <Box>
+                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Low Stock</Text>
+                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>15</Text>
+                                </Box>
+                                <Flex p="2" rounded="lg" bg="red.50" color="red.500" _dark={{ bg: 'red.900', color: 'red.200' }}>
+                                    <FaIndustry size="20px" />
+                                </Flex>
+                            </Flex>
+                            <Flex align="center" mt="4" fontSize="sm" color="red.500">
+                                <Text fontWeight="medium">Requires attention</Text>
+                            </Flex>
+                        </CardBody>
+                    </Card>
+                </Grid>
 
-                        {/* KPI Cards */}
-                        <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }} gap="4">
-                            <Card boxShadow="sm" bg={bgCard}>
-                                <CardBody p="4">
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" mb="1">Total Inventory Value</Text>
-                                    <Text fontSize="2xl" mb="2">$1.2M</Text>
-                                    <Text fontSize="xs" color="green.500" display="flex" alignItems="center" gap="1">
-                                        <ArrowForwardIcon transform="rotate(-45deg)" /> +0.2% vs last month
-                                    </Text>
-                                </CardBody>
-                            </Card>
-                            <Card boxShadow="sm" bg={bgCard}>
-                                <CardBody p="4">
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" mb="1">Production Efficiency</Text>
-                                    <Text fontSize="2xl" mb="2">88%</Text>
-                                    <Text fontSize="xs" color="green.500" display="flex" alignItems="center" gap="1">
-                                        <ArrowForwardIcon transform="rotate(-45deg)" /> +3.5% vs last month
-                                    </Text>
-                                </CardBody>
-                            </Card>
-                            <Card boxShadow="sm" bg={bgCard}>
-                                <CardBody p="4">
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" mb="1">Pending Orders</Text>
-                                    <Text fontSize="2xl" mb="2">142</Text>
-                                    <Text fontSize="xs" color="gray.500">-12 vs yesterday</Text>
-                                </CardBody>
-                            </Card>
-                            <Card boxShadow="sm" bg={bgCard}>
-                                <CardBody p="4">
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" mb="1">Low Stock Alerts</Text>
-                                    <Text fontSize="2xl" mb="2">15</Text>
-                                    <Text fontSize="xs" color="red.500" display="flex" alignItems="center" gap="1">Requires attention</Text>
-                                </CardBody>
-                            </Card>
-                        </Grid>
+                {/* Quick Actions */}
+                <Box mb="8" overflowX="auto">
+                    <Flex align="center" gap="6" minW="max-content">
+                        <Text fontSize="lg" fontWeight="medium" color={textColorMuted}>Quick Actions</Text>
+                        <Flex gap="4">
+                            {[
+                                { icon: <AddIcon />, label: "New Order" },
+                                { icon: <CopyIcon />, label: "Duplicate" },
+                                { icon: <ViewIcon />, label: "Export PDF" },
+                                { icon: <EmailIcon />, label: "Send Email" },
+                                { icon: <ViewIcon />, label: "Templates" },
+                            ].map((action, i) => (
+                                <Button
+                                    key={i}
+                                    variant="ghost"
+                                    h="auto"
+                                    p="0"
+                                    flexDirection="column"
+                                    gap="2"
+                                    _hover={{ textDecoration: 'none' }}
+                                    className="group"
+                                >
+                                    <Flex
+                                        w="12"
+                                        h="12"
+                                        align="center"
+                                        justify="center"
+                                        rounded="full"
+                                        bg={useColorModeValue("white", "whiteAlpha.50")}
+                                        border="1px dashed"
+                                        borderColor={borderColor}
+                                        color="gray.400"
+                                        _hover={{ borderColor: 'blue.400', color: 'blue.500', bg: 'blue.50', _dark: { bg: 'blue.900', color: 'blue.200' } }}
+                                        transition="all 0.2s"
+                                        boxShadow="sm"
+                                    >
+                                        {action.icon}
+                                    </Flex>
+                                    <Text fontSize="xs" fontWeight="medium" color="gray.500" _groupHover={{ color: textColorMain }} transition="all 0.2s">{action.label}</Text>
+                                </Button>
+                            ))}
+                        </Flex>
+                    </Flex>
+                </Box>
 
-                        {/* Quick Actions */}
-                        <Box>
-                            <Text fontSize="sm" fontWeight="medium" color={textColorMuted} mb="4">Quick Actions</Text>
-                            <Grid templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' }} gap="4">
-                                <Button variant="outline" h="24" flexDirection="column" gap="2" bg={bgCard} _hover={{ bg: 'gray.100', _dark: { bg: 'gray.700' } }}>
-                                    <Box p="1" bg="gray.900" color="white" borderRadius="md"><AddIcon boxSize="3" /></Box>
-                                    New Order
-                                </Button>
-                                <Button variant="outline" h="24" flexDirection="column" gap="2" bg={bgCard} _hover={{ bg: 'gray.100', _dark: { bg: 'gray.700' } }}>
-                                    <CopyIcon boxSize="5" color={textColorMuted} /> Duplicate
-                                </Button>
-                                <Button variant="outline" h="24" flexDirection="column" gap="2" bg={bgCard} _hover={{ bg: 'gray.100', _dark: { bg: 'gray.700' } }}>
-                                    <ViewIcon boxSize="5" color={textColorMuted} /> Export PDF
-                                </Button>
-                                <Button variant="outline" h="24" flexDirection="column" gap="2" bg={bgCard} _hover={{ bg: 'gray.100', _dark: { bg: 'gray.700' } }}>
-                                    <EmailIcon boxSize="5" color={textColorMuted} /> Send Email
-                                </Button>
-                                <Button variant="outline" h="24" flexDirection="column" gap="2" bg={bgCard} _hover={{ bg: 'gray.100', _dark: { bg: 'gray.700' } }}>
-                                    <ViewIcon boxSize="5" color={textColorMuted} /> Templates
-                                </Button>
-                            </Grid>
-                        </Box>
+                {/* Main Content Areas */}
+                <Grid templateColumns={{ base: '1fr', lg: 'repeat(3, 1fr)' }} gap="6">
+                    {/* Orders Table */}
+                    <Box gridColumn={{ lg: 'span 3' }}>
+                        <Card boxShadow="lg" bg={bgCard} borderRadius="3xl" border="1px" borderColor={borderColor} overflow="hidden">
+                            <CardHeader display="flex" justifyContent="space-between" alignItems="center" borderBottom="1px" borderColor={borderColor} pb="4">
+                                <Flex align="center" gap="2">
+                                    <Heading size="md" color={textColorMain}>Recent Orders</Heading>
+                                    <Tag size="sm" borderRadius="full" colorScheme="gray">Active</Tag>
+                                </Flex>
+                                <Flex gap="3" align="center">
+                                    <ButtonGroup size="sm" isAttached variant="outline" borderRadius="lg">
+                                        <IconButton
+                                            aria-label="List View"
+                                            icon={<FaList />}
+                                            isActive={viewMode === 'list'}
+                                            onClick={() => setViewMode('list')}
+                                            _active={{ bg: useColorModeValue("gray.100", "whiteAlpha.200"), color: "blue.500" }}
+                                        />
+                                        <IconButton
+                                            aria-label="Grid View"
+                                            icon={<FaTh />}
+                                            isActive={viewMode === 'grid'}
+                                            onClick={() => setViewMode('grid')}
+                                            _active={{ bg: useColorModeValue("gray.100", "whiteAlpha.200"), color: "blue.500" }}
+                                        />
+                                    </ButtonGroup>
+                                    <Box w="1px" h="20px" bg={borderColor} />
+                                    <Menu closeOnSelect={false}>
+                                        <MenuButton as={Button} size="sm" rightIcon={<ChevronDownIcon />} variant="outline" borderRadius="lg" fontWeight="medium">
+                                            Status
+                                        </MenuButton>
+                                        <MenuList minW="240px" zIndex="popover" shadow="lg" borderRadius="xl">
+                                            <CheckboxGroup
+                                                value={selectedStatuses}
+                                                onChange={(values) => setSelectedStatuses(values as string[])}
+                                            >
+                                                <VStack align="start" px="3" py="2" spacing="2">
+                                                    {['Pending Review', 'In Production', 'Shipped'].map((status) => (
+                                                        <Checkbox key={status} value={status} w="full">
+                                                            {status}
+                                                        </Checkbox>
+                                                    ))}
+                                                </VStack>
+                                            </CheckboxGroup>
+                                            <MenuDivider />
+                                            <MenuItem onClick={() => setSelectedStatuses([])} closeOnSelect={true} fontSize="xs" color="blue.500">
+                                                Clear Filter
+                                            </MenuItem>
+                                        </MenuList>
+                                    </Menu>
+                                </Flex>
+                            </CardHeader>
 
-                        {/* Main Charts & Content */}
-                        <Grid templateColumns={{ base: '1fr', lg: 'repeat(3, 1fr)' }} gap="6">
-
-                            {/* Orders Table */}
-                            <Box gridColumn={{ lg: 'span 3' }}>
-                                <Card boxShadow="sm">
-                                    <CardHeader display="flex" justifyContent="space-between" alignItems="center" pb="2">
-                                        <Heading size="md">Recent Orders</Heading>
-                                        <Flex gap="3" align="center">
-                                            <InputGroup size="sm" w="56">
-                                                <InputLeftElement pointerEvents="none"><SearchIcon color="gray.400" /></InputLeftElement>
-                                                <Input
-                                                    placeholder="Search orders..."
-                                                    borderRadius="md"
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                />
-                                            </InputGroup>
-                                            <ButtonGroup size="sm" isAttached variant="outline">
-                                                <IconButton
-                                                    aria-label="List View"
-                                                    icon={<FaList />}
-                                                    isActive={viewMode === 'list'}
-                                                    onClick={() => setViewMode('list')}
-                                                />
-                                                <IconButton
-                                                    aria-label="Grid View"
-                                                    icon={<FaTh />}
-                                                    isActive={viewMode === 'grid'}
-                                                    onClick={() => setViewMode('grid')}
-                                                />
-                                            </ButtonGroup>
-                                            <Menu closeOnSelect={false}>
-                                                <MenuButton as={Button} size="sm" rightIcon={<ChevronDownIcon />}>
-                                                    Status
-                                                </MenuButton>
-                                                <MenuList minW="240px">
-                                                    <CheckboxGroup
-                                                        value={selectedStatuses}
-                                                        onChange={(values) => setSelectedStatuses(values as string[])}
-                                                    >
-                                                        <VStack align="start" px="3" py="2" spacing="2">
-                                                            {['Pending Review', 'In Production', 'Shipped'].map((status) => (
-                                                                <Checkbox key={status} value={status} w="full">
-                                                                    {status}
-                                                                </Checkbox>
-                                                            ))}
-                                                        </VStack>
-                                                    </CheckboxGroup>
-                                                    <MenuDivider />
-                                                    <MenuItem onClick={() => setSelectedStatuses([])} closeOnSelect={true}>
-                                                        <Text fontSize="xs" color="gray.500">Clear Filter</Text>
-                                                    </MenuItem>
-                                                </MenuList>
-                                            </Menu>
-                                        </Flex>
-                                    </CardHeader>
-                                    <CardBody>
-                                        {viewMode === 'list' ? (
-                                            <TableContainer>
-                                                <Table variant="simple">
-                                                    <Thead>
-                                                        <Tr>
-                                                            <Th>Order ID</Th>
-                                                            <Th>Customer</Th>
-                                                            <Th>Amount</Th>
-                                                            <Th>Status</Th>
-                                                            <Th>Due Date</Th>
-                                                            <Th isNumeric>Actions</Th>
+                            <CardBody p="0">
+                                {viewMode === 'list' ? (
+                                    <TableContainer>
+                                        <Table variant="simple">
+                                            <Thead bg={useColorModeValue('gray.50', 'whiteAlpha.50')}>
+                                                <Tr>
+                                                    <Th>Order ID</Th>
+                                                    <Th>Customer</Th>
+                                                    <Th>Amount</Th>
+                                                    <Th>Status</Th>
+                                                    <Th>Date</Th>
+                                                    <Th isNumeric>Actions</Th>
+                                                </Tr>
+                                            </Thead>
+                                            <Tbody>
+                                                {filteredOrders.map((order) => (
+                                                    <Fragment key={order.id}>
+                                                        <Tr
+                                                            cursor="pointer"
+                                                            _hover={{ bg: useColorModeValue("gray.50", "whiteAlpha.50") }}
+                                                            bg={expandedIds.has(order.id) ? useColorModeValue("blue.50", "whiteAlpha.100") : undefined}
+                                                            onClick={() => toggleExpand(order.id)}
+                                                            transition="background 0.2s"
+                                                        >
+                                                            <Td fontWeight="bold" color={textColorMain} display="flex" alignItems="center" gap={2}>
+                                                                {expandedIds.has(order.id) ? <ChevronDownIcon color="blue.500" /> : <ChevronRightIcon color="gray.400" />}
+                                                                {order.id}
+                                                            </Td>
+                                                            <Td>
+                                                                <Flex align="center" gap="2">
+                                                                    <Avatar size="xs" name={order.avatar} bg="gray.200" color="gray.600" />
+                                                                    <Text fontSize="sm" fontWeight="medium">{order.customer}</Text>
+                                                                </Flex>
+                                                            </Td>
+                                                            <Td color="gray.500">{order.amount}</Td>
+                                                            <Td><Tag size="sm" borderRadius="full" variant="subtle" colorScheme={order.colorScheme}>{order.status}</Tag></Td>
+                                                            <Td color="gray.500">{order.date}</Td>
+                                                            <Td isNumeric onClick={(e) => e.stopPropagation()}>
+                                                                <Menu isLazy>
+                                                                    <MenuButton as={IconButton} aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" color="gray.400" />
+                                                                    <MenuList borderRadius="xl" shadow="lg" zIndex="popover">
+                                                                        <MenuItem icon={<ViewIcon />} onClick={onNavigateToDetail}>View Details</MenuItem>
+                                                                        <MenuItem icon={<EditIcon />}>Edit</MenuItem>
+                                                                        <MenuItem icon={<DeleteIcon />}>Delete</MenuItem>
+                                                                        <MenuItem icon={<EmailIcon />}>Contact</MenuItem>
+                                                                    </MenuList>
+                                                                </Menu>
+                                                            </Td>
                                                         </Tr>
-                                                    </Thead>
-                                                    <Tbody>
-                                                        {filteredOrders.map((order) => (
-                                                            <>
-                                                                <Tr
-                                                                    key={order.id}
-                                                                    cursor="pointer"
-                                                                    _hover={{ bg: "gray.50", _dark: { bg: "gray.700" } }}
-                                                                    bg={expandedIds.has(order.id) ? useColorModeValue("gray.50", "gray.700") : undefined}
-                                                                    onClick={() => toggleExpand(order.id)}
-                                                                >
-                                                                    <Td fontWeight="medium" display="flex" alignItems="center" gap={2}>
-                                                                        {expandedIds.has(order.id) ? <ChevronDownIcon color="gray.400" /> : <ChevronRightIcon color="gray.400" />}
-                                                                        {order.id}
-                                                                    </Td>
-                                                                    <Td>
-                                                                        <Flex align="center" gap="2">
-                                                                            <Avatar size="xs" name={order.avatar} />
-                                                                            <Text fontSize="sm">{order.customer}</Text>
-                                                                        </Flex>
-                                                                    </Td>
-                                                                    <Td>{order.amount}</Td>
-                                                                    <Td><Tag colorScheme={order.colorScheme}>{order.status}</Tag></Td>
-                                                                    <Td color="gray.500">{order.date}</Td>
-                                                                    <Td isNumeric onClick={(e) => e.stopPropagation()}>
-                                                                        <Menu isLazy>
-                                                                            <MenuButton as={IconButton} aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" />
-                                                                            <MenuList>
-                                                                                <MenuItem icon={<ViewIcon />} onClick={onNavigateToDetail}>
-                                                                                    View Details
-                                                                                </MenuItem>
-                                                                                <MenuItem icon={<EditIcon />}>
-                                                                                    Edit
-                                                                                </MenuItem>
-                                                                                <MenuItem icon={<DeleteIcon />}>
-                                                                                    Delete
-                                                                                </MenuItem>
-                                                                                <MenuItem icon={<EmailIcon />}>
-                                                                                    Contact
-                                                                                </MenuItem>
-                                                                            </MenuList>
-                                                                        </Menu>
-                                                                    </Td>
-                                                                </Tr>
-                                                                {expandedIds.has(order.id) && (
-                                                                    <Tr bg={useColorModeValue("gray.50", "gray.800")} _hover={{ bg: useColorModeValue("gray.50", "gray.800") }}>
-                                                                        <Td colSpan={6} p={0}>
-                                                                            <Box p={6}>
-                                                                                <VStack align="stretch" spacing={6}>
-                                                                                    <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" gap={4}>
-                                                                                        <Flex align="start" gap={3}>
-                                                                                            <Avatar size="md" icon={<FaUser />} bg="gray.200" color="gray.500" />
-                                                                                            <Box>
-                                                                                                <Text fontSize="sm" fontWeight="medium">Sarah Johnson</Text>
-                                                                                                <Text fontSize="xs" color="gray.500">Project Manager</Text>
-                                                                                            </Box>
-                                                                                        </Flex>
-                                                                                        <SimpleGrid columns={2} spacing={8}>
-                                                                                            <Box>
-                                                                                                <Text fontSize="xs" color="gray.500" mb={1} textTransform="uppercase">Location</Text>
-                                                                                                <Flex align="center" gap={1.5} fontSize="sm">
-                                                                                                    <FaMapMarkerAlt color="gray" />
-                                                                                                    NY, USA
-                                                                                                </Flex>
-                                                                                            </Box>
-                                                                                            <Box>
-                                                                                                <Text fontSize="xs" color="gray.500" mb={1} textTransform="uppercase">Project ID</Text>
-                                                                                                <Text fontSize="sm">PRJ-24-87</Text>
-                                                                                            </Box>
-                                                                                        </SimpleGrid>
-                                                                                    </Flex>
-
-                                                                                    <Box position="relative" py={2}>
-                                                                                        <Box position="absolute" top="15px" left="0" w="full" h="2px" bg={useColorModeValue("gray.200", "gray.700")} />
-                                                                                        <Flex justify="space-between" position="relative" zIndex={1}>
-                                                                                            {['Order Placed', 'Manufacturing', 'Quality', 'Shipping'].map((step, i) => (
-                                                                                                <Flex key={i} direction="column" align="center" bg={useColorModeValue("gray.50", "gray.800")} px={2}>
-                                                                                                    <Flex
-                                                                                                        w={8} h={8} rounded="full" align="center" justify="center"
-                                                                                                        bg={i <= 1 ? "gray.900" : "white"}
-                                                                                                        color={i <= 1 ? "white" : "gray.400"}
-                                                                                                        borderWidth="1px"
-                                                                                                        borderColor={i <= 1 ? "gray.900" : "gray.300"}
-                                                                                                        _dark={{
-                                                                                                            bg: i <= 1 ? "gray.50" : "gray.900",
-                                                                                                            color: i <= 1 ? "gray.900" : "gray.600",
-                                                                                                            borderColor: i <= 1 ? "gray.50" : "gray.600"
-                                                                                                        }}
-                                                                                                    >
-                                                                                                        {i < 1 ? <FaCheckCircle /> : i === 1 ? <FaClock /> : <Box w={2} h={2} rounded="full" bg={useColorModeValue("gray.300", "gray.600")} />}
-                                                                                                    </Flex>
-                                                                                                    <Text fontSize="xs" mt={2} fontWeight={i <= 1 ? "medium" : "normal"} color={i <= 1 ? "inherit" : "gray.500"}>{step}</Text>
-                                                                                                </Flex>
-                                                                                            ))}
-                                                                                        </Flex>
-                                                                                    </Box>
-
-                                                                                    <Flex align="center" gap={3} p={3} bg={useColorModeValue("white", "gray.900")} rounded="md" borderWidth="1px" borderColor={borderColor}>
-                                                                                        <FaTruck color="gray" />
-                                                                                        <Box flex="1">
-                                                                                            <Text fontSize="sm" fontWeight="medium">Truck delayed at Customs - New ETA +24h</Text>
-                                                                                            <Text fontSize="xs" color="gray.500">The delivery truck has been delayed at the export checkpoint. Estimated arrival updated.</Text>
-                                                                                        </Box>
-                                                                                        <Button size="xs" variant="solid" colorScheme="gray" onClick={() => setTrackingOrder(order)}>Track</Button>
-                                                                                    </Flex>
-                                                                                </VStack>
-                                                                            </Box>
-                                                                        </Td>
-                                                                    </Tr>
-                                                                )}
-                                                            </>
-                                                        ))}
-                                                        {filteredOrders.length === 0 && (
+                                                        {expandedIds.has(order.id) && (
                                                             <Tr>
-                                                                <Td colSpan={6} textAlign="center" color="gray.500" py="8">
-                                                                    No orders found matching your criteria.
+                                                                <Td colSpan={6} p={0}>
+                                                                    <Box p={6} bg={useColorModeValue("gray.50", "blackAlpha.200")} pl={12}>
+                                                                        <Flex direction={{ base: 'column', md: 'row' }} gap={8}>
+                                                                            <VStack align="start" flex="1" spacing={4}>
+                                                                                <Flex align="center" gap={3}>
+                                                                                    <Avatar icon={<FaUser />} bg="gray.200" color="gray.500" />
+                                                                                    <Box>
+                                                                                        <Text fontWeight="bold" color={textColorMain}>Sarah Johnson</Text>
+                                                                                        <Text fontSize="xs" color="gray.500">Project Manager</Text>
+                                                                                    </Box>
+                                                                                </Flex>
+                                                                                <Divider borderColor={borderColor} />
+                                                                                {/* Re-using step visual logic */}
+                                                                                <Box w="full" position="relative" py={2}>
+                                                                                    <Box position="absolute" top="15px" left="0" w="full" h="2px" bg={useColorModeValue("gray.200", "gray.600")} />
+                                                                                    <Flex justify="space-between" position="relative" zIndex={1}>
+                                                                                        {['Placed', 'Mfg', 'Qual', 'Ship'].map((step, i) => (
+                                                                                            <Flex key={i} direction="column" align="center" bg={useColorModeValue("gray.50", "blackAlpha.200")}>
+                                                                                                <Flex
+                                                                                                    w={8} h={8} rounded="full" align="center" justify="center"
+                                                                                                    bg={i <= 1 ? "blue.500" : "gray.200"}
+                                                                                                    color={i <= 1 ? "white" : "gray.400"}
+                                                                                                    _dark={{ bg: i <= 1 ? "blue.400" : "gray.700" }}
+                                                                                                >
+                                                                                                    {i < 1 ? <FaCheckCircle /> : <Box w={2} h={2} rounded="full" bg={i <= 1 ? "white" : "gray.400"} />}
+                                                                                                </Flex>
+                                                                                                <Text fontSize="xs" mt={2} fontWeight="medium" color={i <= 1 ? "blue.500" : "gray.500"}>{step}</Text>
+                                                                                            </Flex>
+                                                                                        ))}
+                                                                                    </Flex>
+                                                                                </Box>
+                                                                            </VStack>
+                                                                            <Box w={{ base: "full", md: "300px" }}>
+                                                                                <Card variant="outline" bg={useColorModeValue("white", "gray.800")} borderColor={borderColor}>
+                                                                                    <CardBody p={4}>
+                                                                                        <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={3} textTransform="uppercase">Alert</Text>
+                                                                                        <Flex gap={3}>
+                                                                                            <FaTruck color="orange" size="20px" />
+                                                                                            <Box>
+                                                                                                <Text fontSize="sm" fontWeight="bold" color="orange.500">Customs Delay</Text>
+                                                                                                <Text fontSize="xs" color="gray.500" mt={1}>Held at port. ETA +24h.</Text>
+                                                                                                <Text fontSize="xs" color="blue.500" mt={2} cursor="pointer" onClick={() => setTrackingOrder(order)}>Track Shipment</Text>
+                                                                                            </Box>
+                                                                                        </Flex>
+                                                                                    </CardBody>
+                                                                                </Card>
+                                                                            </Box>
+                                                                        </Flex>
+                                                                    </Box>
                                                                 </Td>
                                                             </Tr>
                                                         )}
-                                                    </Tbody>
-                                                </Table>
-                                            </TableContainer>
-                                        ) : (
-                                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-                                                {filteredOrders.map((order) => (
-                                                    <Card
-                                                        key={order.id}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        _hover={{ borderColor: "gray.400" }}
-                                                        transition="all 0.2s"
-                                                        cursor="pointer"
-                                                        borderColor={expandedIds.has(order.id) ? "gray.400" : undefined}
-                                                        bg={expandedIds.has(order.id) ? useColorModeValue("gray.50", "gray.800") : undefined}
-                                                        onClick={() => toggleExpand(order.id)}
-                                                    >
-                                                        <CardBody>
-                                                            <Flex justify="space-between" align="start" mb={2}>
-                                                                <Box>
-                                                                    <Flex align="center" gap={2}>
-                                                                        <Text fontWeight="bold" fontSize="sm">{order.id}</Text>
-                                                                        {expandedIds.has(order.id) ? <ChevronDownIcon color="gray.400" /> : <ChevronRightIcon color="gray.400" />}
-                                                                    </Flex>
-                                                                    <Text fontSize="xs" color="gray.500">{order.customer}</Text>
-                                                                </Box>
-                                                                <Box onClick={(e) => e.stopPropagation()}>
-                                                                    <Menu isLazy>
-                                                                        <MenuButton as={IconButton} aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" />
-                                                                        <MenuList>
-                                                                            <MenuItem icon={<ViewIcon />} onClick={onNavigateToDetail}>
-                                                                                View Details
-                                                                            </MenuItem>
-                                                                            <MenuItem icon={<EditIcon />}>
-                                                                                Edit
-                                                                            </MenuItem>
-                                                                            <MenuItem icon={<DeleteIcon />}>
-                                                                                Delete
-                                                                            </MenuItem>
-                                                                            <MenuItem icon={<EmailIcon />}>
-                                                                                Contact
-                                                                            </MenuItem>
-                                                                        </MenuList>
-                                                                    </Menu>
-                                                                </Box>
-                                                            </Flex>
-                                                            <Divider mb={3} />
-                                                            <VStack align="stretch" spacing={2}>
-                                                                <Flex justify="space-between" fontSize="sm">
-                                                                    <Text color="gray.500">Amount</Text>
-                                                                    <Text fontWeight="medium">{order.amount}</Text>
-                                                                </Flex>
-                                                                <Flex justify="space-between" fontSize="sm">
-                                                                    <Text color="gray.500">Due Date</Text>
-                                                                    <Text>{order.date}</Text>
-                                                                </Flex>
-                                                                <Flex justify="space-between" align="center" pt={2}>
-                                                                    <Tag size="sm" colorScheme={order.colorScheme}>{order.status}</Tag>
-                                                                    <Avatar size="xs" name={order.avatar} />
-                                                                </Flex>
-                                                            </VStack>
-
-                                                            {expandedIds.has(order.id) && (
-                                                                <Box pt={4} mt={4} borderTop="1px" borderColor={borderColor} onClick={(e) => e.stopPropagation()} cursor="default">
-                                                                    <VStack align="stretch" spacing={4}>
-                                                                        <Flex align="center" gap={3}>
-                                                                            <Avatar size="sm" icon={<FaUser />} bg="gray.200" color="gray.500" />
-                                                                            <Box>
-                                                                                <Text fontSize="sm" fontWeight="medium">Sarah Johnson</Text>
-                                                                                <Text fontSize="xs" color="gray.500">Project Manager</Text>
-                                                                            </Box>
-                                                                        </Flex>
-
-                                                                        <SimpleGrid columns={2} spacing={4}>
-                                                                            <Box>
-                                                                                <Text fontSize="xs" color="gray.500" mb={1}>LOCATION</Text>
-                                                                                <Flex align="center" gap={1.5} fontSize="sm">
-                                                                                    <FaMapMarkerAlt color="gray" />
-                                                                                    NY, USA
-                                                                                </Flex>
-                                                                            </Box>
-                                                                            <Box>
-                                                                                <Text fontSize="xs" color="gray.500" mb={1}>PROJECT ID</Text>
-                                                                                <Text fontSize="sm">PRJ-24-87</Text>
-                                                                            </Box>
-                                                                        </SimpleGrid>
-
-                                                                        <Box bg={useColorModeValue("white", "gray.900")} p={3} borderRadius="md" borderWidth="1px" borderColor={borderColor}>
-                                                                            {['Placed', 'Mfg', 'Qual', 'Ship'].map((step, i) => (
-                                                                                <Flex key={i} align="center" gap={2} mb={1}>
-                                                                                    <Box w={2} h={2} rounded="full" bg={i <= 1 ? "gray.900" : "gray.300"} _dark={{ bg: i <= 1 ? "white" : "gray.600" }} />
-                                                                                    <Text fontSize="xs" color={i <= 1 ? "inherit" : "gray.500"}>{step}</Text>
-                                                                                </Flex>
-                                                                            ))}
-                                                                        </Box>
-
-                                                                        <Flex align="center" gap={2} p={2} bg={useColorModeValue("gray.50", "gray.900")} rounded="md" borderWidth="1px" borderColor={borderColor}>
-                                                                            <FaTruck color="gray" size="12px" style={{ marginTop: '0px' }} />
-                                                                            <Box flex="1">
-                                                                                <Text fontSize="xs" fontWeight="medium">Delay: Customs</Text>
-                                                                                <Text fontSize="xs" color="gray.500">+24h ETA</Text>
-                                                                            </Box>
-                                                                            <Button size="xs" h="24px" fontSize="10px" variant="solid" colorScheme="gray" onClick={() => setTrackingOrder(order)}>Track</Button>
-                                                                        </Flex>
-                                                                    </VStack>
-                                                                </Box>
-                                                            )}
-                                                        </CardBody>
-                                                    </Card>
+                                                    </Fragment>
                                                 ))}
-                                                {filteredOrders.length === 0 && (
-                                                    <Box gridColumn="1/-1" textAlign="center" color="gray.500" py="8">
-                                                        No orders found matching your criteria.
-                                                    </Box>
-                                                )}
-                                            </SimpleGrid>
-                                        )}
-                                    </CardBody>
-                                </Card>
-                            </Box>
+                                            </Tbody>
+                                        </Table>
+                                    </TableContainer>
+                                ) : (
+                                    <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} spacing={4} p="6">
+                                        {filteredOrders.map((order) => (
+                                            <Card
+                                                key={order.id}
+                                                variant="outline"
+                                                borderColor={expandedIds.has(order.id) ? "blue.400" : borderColor}
+                                                boxShadow={expandedIds.has(order.id) ? "0 0 0 1px #4299E1" : "none"}
+                                                bg={useColorModeValue("white", "gray.800")}
+                                                cursor="pointer"
+                                                onClick={() => toggleExpand(order.id)}
+                                                transition="all 0.2s"
+                                                _hover={{ borderColor: "blue.300" }}
+                                                borderRadius="xl"
+                                                overflow="hidden"
+                                            >
+                                                <CardBody p="5">
+                                                    <Flex justify="space-between" mb="4">
+                                                        <Flex align="center" gap="3">
+                                                            <Avatar size="sm" name={order.avatar} bgGradient="linear(to-br, blue.400, purple.500)" color="white" fontWeight="bold" />
+                                                            <Box>
+                                                                <Text fontWeight="bold" fontSize="sm">{order.customer}</Text>
+                                                                <Text fontSize="xs" color="gray.500">{order.id}</Text>
+                                                            </Box>
+                                                        </Flex>
+                                                        <IconButton aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" onClick={(e) => e.stopPropagation()} />
+                                                    </Flex>
 
-                            {/* Metrics */}
-                            <Box gridColumn={{ lg: 'span 3' }}>
-                                <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap="4">
-                                    <Card boxShadow="sm">
-                                        <CardBody display="flex" justifyContent="space-between" alignItems="center">
-                                            <Box>
-                                                <Text fontSize="sm" color="gray.500">Total Revenue</Text>
-                                                <Text fontSize="xl" fontWeight="bold">$2,847,500</Text>
-                                            </Box>
-                                            <ArrowForwardIcon transform="rotate(-45deg)" color="gray.400" />
-                                        </CardBody>
-                                    </Card>
-                                    <Card boxShadow="sm">
-                                        <CardBody display="flex" justifyContent="space-between" alignItems="center">
-                                            <Box>
-                                                <Text fontSize="sm" color="gray.500">Operational Costs</Text>
-                                                <Text fontSize="xl" fontWeight="bold">$1,625,000</Text>
-                                            </Box>
-                                            <ArrowForwardIcon transform="rotate(-45deg)" color="gray.400" />
-                                        </CardBody>
-                                    </Card>
-                                    <Card boxShadow="sm">
-                                        <CardBody display="flex" justifyContent="space-between" alignItems="center">
-                                            <Box>
-                                                <Text fontSize="sm" color="gray.500">Net Profit</Text>
-                                                <Text fontSize="xl" fontWeight="bold">$1,222,500</Text>
-                                            </Box>
-                                            <FaBox color="gray" />
-                                        </CardBody>
-                                    </Card>
-                                </Grid>
-                            </Box>
+                                                    <VStack align="stretch" spacing="2">
+                                                        <Flex justify="space-between" align="center" py="1" borderBottom="1px" borderColor={useColorModeValue("gray.100", "whiteAlpha.100")}>
+                                                            <Text fontSize="xs" color="gray.500">Amount</Text>
+                                                            <Text fontSize="sm" fontWeight="bold">{order.amount}</Text>
+                                                        </Flex>
+                                                        <Flex justify="space-between" align="center" py="1" borderBottom="1px" borderColor={useColorModeValue("gray.100", "whiteAlpha.100")}>
+                                                            <Text fontSize="xs" color="gray.500">Date</Text>
+                                                            <Text fontSize="sm">{order.date}</Text>
+                                                        </Flex>
+                                                        <Flex justify="space-between" align="center" pt="2">
+                                                            <Tag size="sm" borderRadius="full" colorScheme={order.colorScheme}>{order.status}</Tag>
+                                                        </Flex>
+                                                    </VStack>
 
-                            {/* Charts */}
-                            <Box gridColumn={{ lg: 'span 2' }}>
-                                <Card boxShadow="sm" h="full">
-                                    <CardHeader>
-                                        <Heading size="md">Inventory Turnover by Category</Heading>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Box h="300px" w="100%">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={inventoryData}>
-                                                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                                                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: bgCard, borderColor: borderColor, color: textColorMain }} />
-                                                    <Bar dataKey="value" fill={chartFill} radius={[4, 4, 0, 0]} />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </Box>
-                                    </CardBody>
-                                </Card>
-                            </Box>
+                                                    {expandedIds.has(order.id) && (
+                                                        <Box mt="4" pt="4" borderTop="1px" borderColor={borderColor}>
+                                                            <Flex align="center" gap="2" mb="3">
+                                                                <FaBox size="14px" color="gray" />
+                                                                <Text fontSize="xs" fontWeight="bold" color="gray.500">Order Items (2)</Text>
+                                                            </Flex>
+                                                            <VStack align="stretch" spacing="1" mb="4">
+                                                                <Flex justify="space-between" fontSize="xs"><Text color="gray.500">Office Chair</Text><Text fontWeight="bold">x1</Text></Flex>
+                                                                <Flex justify="space-between" fontSize="xs"><Text color="gray.500">Standing Desk</Text><Text fontWeight="bold">x1</Text></Flex>
+                                                            </VStack>
+                                                            <Button size="sm" width="full" colorScheme="blue" variant="solid" onClick={(e) => { e.stopPropagation(); setTrackingOrder(order); }}>Track</Button>
+                                                        </Box>
+                                                    )}
+                                                </CardBody>
+                                            </Card>
+                                        ))}
+                                    </SimpleGrid>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </Box>
 
-                            <Box gridColumn={{ lg: 'span 1' }}>
-                                <Card boxShadow="sm" h="full">
-                                    <CardHeader>
-                                        <Heading size="md">Sales vs. Costs</Heading>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <Box h="300px" w="100%">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <LineChart data={salesData}>
-                                                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                                    <Tooltip cursor={{ stroke: 'gray.500' }} contentStyle={{ backgroundColor: bgCard, borderColor: borderColor, color: textColorMain }} />
-                                                    <Line type="monotone" dataKey="sales" stroke={chartStroke} strokeWidth={2} dot={false} />
-                                                    <Line type="monotone" dataKey="costs" stroke="#A0AEC0" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                                                </LineChart>
-                                            </ResponsiveContainer>
-                                        </Box>
-                                    </CardBody>
-                                </Card>
-                            </Box>
+                    {/* Charts */}
+                    <Box gridColumn={{ lg: 'span 2' }}>
+                        <Card boxShadow="sm" borderRadius="2xl" border="1px" borderColor={borderColor}>
+                            <CardHeader>
+                                <Heading size="md" color={textColorMain}>Revenue Trend</Heading>
+                            </CardHeader>
+                            <CardBody>
+                                <Box h="300px" w="100%">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={salesData}>
+                                            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                                            <XAxis dataKey="name" stroke="#A0AEC0" fontSize={12} tickLine={false} axisLine={false} />
+                                            <YAxis stroke="#A0AEC0" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                                            <Tooltip cursor={{ stroke: 'gray.500' }} contentStyle={{ backgroundColor: bgCard, borderColor: borderColor, color: textColorMain, borderRadius: '8px' }} />
+                                            <Line type="monotone" dataKey="sales" stroke="#4299E1" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6 }} />
+                                            <Line type="monotone" dataKey="costs" stroke="#A0AEC0" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </Box>
+                            </CardBody>
+                        </Card>
+                    </Box>
 
-                        </Grid>
-                    </VStack>
-                </Box>
-            </Flex>
+                    <Box gridColumn={{ lg: 'span 1' }}>
+                        <Card boxShadow="sm" borderRadius="2xl" border="1px" borderColor={borderColor}>
+                            <CardHeader>
+                                <Heading size="md" color={textColorMain}>Inventory</Heading>
+                            </CardHeader>
+                            <CardBody>
+                                <Box h="300px" w="100%">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={inventoryData}>
+                                            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} vertical={false} />
+                                            <XAxis dataKey="name" stroke="#A0AEC0" fontSize={12} tickLine={false} axisLine={false} />
+                                            <YAxis stroke="#A0AEC0" fontSize={12} tickLine={false} axisLine={false} />
+                                            <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: bgCard, borderColor: borderColor, color: textColorMain, borderRadius: '8px' }} />
+                                            <Bar dataKey="value" fill="#805AD5" radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </Box>
+                            </CardBody>
+                        </Card>
+                    </Box>
+                </Grid>
+            </Box>
 
+            {/* Modal - Track Order */}
             <Modal isOpen={!!trackingOrder} onClose={() => setTrackingOrder(null)} size="2xl" isCentered>
-                <ModalOverlay backdropFilter="blur(4px)" />
-                <ModalContent>
+                <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
+                <ModalContent borderRadius="2xl" bg={bgCard}>
                     <ModalHeader display="flex" justifyContent="space-between" alignItems="center">
                         <Text>Tracking Details - {trackingOrder?.id}</Text>
                     </ModalHeader>
-                    <ModalCloseButton />
+                    <ModalCloseButton rounded="full" mt="2" />
                     <ModalBody pb={6}>
                         <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={8}>
                             {/* Left Col: Timeline */}
@@ -663,11 +593,9 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                     rounded="full"
                                                     bg={step.completed ? (colorMode === 'light' ? 'gray.900' : 'white') : (colorMode === 'light' ? 'gray.300' : 'gray.600')}
                                                     borderWidth="4px"
-                                                    borderColor={colorMode === 'light' ? 'white' : 'gray.800'}
+                                                    borderColor={colorMode === 'light' ? 'white' : 'gray.900'} // Fixed borderColor match
                                                     boxSizing="content-box"
-                                                    sx={{
-                                                        backgroundColor: step.alert ? 'red.500 !important' : undefined
-                                                    }}
+                                                    sx={{ backgroundColor: step.alert ? 'red.500 !important' : undefined }}
                                                 />
                                                 <Text fontSize="sm" fontWeight="medium">{step.status}</Text>
                                                 <Text fontSize="xs" color="gray.500">{step.date} · {step.location}</Text>
@@ -677,34 +605,30 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                 </Box>
                             </Box>
 
-                            {/* Right Col: Georeference & Actions */}
+                            {/* Right Col */}
                             <Flex direction="column" height="100%">
                                 <Text fontSize="xs" fontWeight="bold" letterSpacing="wide" color="gray.500" mb={4} textTransform="uppercase">Delivery Location</Text>
-
-                                {/* Map Placeholder */}
                                 <Flex
-                                    bg={useColorModeValue("gray.100", "gray.700")}
-                                    rounded="md"
+                                    bg={useColorModeValue("gray.100", "whiteAlpha.100")}
+                                    rounded="2xl"
                                     h="160px"
                                     w="full"
                                     mb={4}
                                     align="center"
                                     justify="center"
                                     borderWidth="1px"
-                                    borderColor={useColorModeValue("gray.200", "gray.700")}
+                                    borderColor={borderColor}
                                 >
                                     <Box textAlign="center">
                                         <FaMapMarkerAlt size="24px" color="gray" style={{ margin: '0 auto 8px' }} />
                                         <Text fontSize="xs" color="gray.500">Map Preview Unavailable</Text>
                                     </Box>
                                 </Flex>
-
-                                <Box bg={useColorModeValue("gray.50", "gray.800")} p={3} rounded="md" borderWidth="1px" borderColor={useColorModeValue("gray.200", "gray.700")} mb={6}>
+                                <Box bg={useColorModeValue("gray.50", "whiteAlpha.50")} p={3} rounded="xl" borderWidth="1px" borderColor={borderColor} mb={6}>
                                     <Text fontSize="xs" fontWeight="medium">Distribution Center NY-05</Text>
                                     <Text fontSize="xs" color="gray.500" mt={1}>45 Industrial Park Dr, Brooklyn, NY 11201</Text>
                                 </Box>
-
-                                <Box mt="auto" pt={4} borderTopWidth="1px" borderColor={useColorModeValue("gray.200", "gray.700")}>
+                                <Box mt="auto" pt={4} borderTopWidth="1px" borderColor={borderColor}>
                                     <Button width="full" colorScheme="gray" variant="solid" leftIcon={<EmailIcon />} onClick={() => console.log('Contact')}>
                                         Contact Support
                                     </Button>
@@ -714,6 +638,44 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                     </ModalBody>
                 </ModalContent>
             </Modal>
-        </Flex>
+        </Box>
+    )
+}
+
+function NavItem({ icon, label, isActive }: { icon: any, label: string, isActive?: boolean }) {
+    const activeBg = useColorModeValue('blackAlpha.100', 'whiteAlpha.200')
+    const activeColor = useColorModeValue('blue.600', 'blue.200')
+    const hoverBg = useColorModeValue('blackAlpha.50', 'whiteAlpha.100')
+
+    return (
+        <Button
+            variant="ghost"
+            rounded="full"
+            p="2"
+            h="auto"
+            bg={isActive ? activeBg : 'transparent'}
+            color={isActive ? activeColor : 'gray.500'}
+            _hover={{ bg: hoverBg, '.nav-label': { maxW: '200px', opacity: 1, ml: 2 } }}
+            display="flex"
+            alignItems="center"
+            overflow="hidden"
+            transition="all 0.3s"
+            className="group"
+        >
+            <Box as={icon} size="20px" />
+            <Box
+                as="span"
+                className="nav-label"
+                maxW={isActive ? '200px' : '0'}
+                opacity={isActive ? 1 : 0}
+                ml={isActive ? 2 : 0}
+                whiteSpace="nowrap"
+                transition="all 0.3s"
+                fontSize="sm"
+                fontWeight="medium"
+            >
+                {label}
+            </Box>
+        </Button>
     )
 }
