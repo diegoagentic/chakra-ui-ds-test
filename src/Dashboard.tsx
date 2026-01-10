@@ -1,16 +1,17 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Fragment } from 'react'
 import {
     Box, Flex, Grid, Heading, Text, Button, Input, InputGroup, InputLeftElement,
     Avatar, IconButton, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
     Card, CardBody, CardHeader, VStack, Divider, Tag, SimpleGrid, ButtonGroup, useColorMode, useColorModeValue, Collapse,
-    Menu, MenuButton, MenuList, MenuItem, MenuDivider, CheckboxGroup, Checkbox,
-    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Image, Tooltip as ChakraTooltip
+    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Image, Tooltip as ChakraTooltip, useDisclosure,
+    Menu, MenuButton, MenuList, MenuItem, MenuDivider, Checkbox, CheckboxGroup, Stack, Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverArrow, Portal
 } from '@chakra-ui/react'
 import {
-    SearchIcon, BellIcon, CalendarIcon, AddIcon, CopyIcon, EmailIcon,
-    ViewIcon, ArrowForwardIcon, ChevronRightIcon, SettingsIcon, MoonIcon, SunIcon, ChevronDownIcon, EditIcon, DeleteIcon
+    ChevronDownIcon, SearchIcon, BellIcon, SettingsIcon, CheckCircleIcon,
+    ChevronRightIcon, EmailIcon, ViewIcon, EditIcon, DeleteIcon,
+    MoonIcon, SunIcon, ChevronUpIcon, ArrowForwardIcon, CopyIcon, AddIcon, CalendarIcon
 } from '@chakra-ui/icons'
-import { FaHome, FaBox, FaIndustry, FaClipboardList, FaTruck, FaTh, FaList, FaSignOutAlt, FaUser, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChartLine } from 'react-icons/fa'
+import { FaHome, FaExclamationTriangle, FaBox, FaIndustry, FaClipboardList, FaTruck, FaTh, FaList, FaSignOutAlt, FaUser, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChartLine, FaCalendar } from 'react-icons/fa'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts'
 
 const inventoryData = [
@@ -50,6 +51,23 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
     const [trackingOrder, setTrackingOrder] = useState<any>(null)
+    const [showMetrics, setShowMetrics] = useState(true)
+    const [isAppsOpen, setIsAppsOpen] = useState(false)
+
+    // HOOK FIX: Define colors at top level, never inside loops
+    const bgHover = useColorModeValue("gray.50", "whiteAlpha.50")
+    const bgExpanded = useColorModeValue("blue.50", "whiteAlpha.100")
+    const bgCard = useColorModeValue("white", "gray.800") // Updated from gray.900
+    const bgStepActive = useColorModeValue("blue.500", "blue.400")
+    const bgStepInactive = useColorModeValue("gray.200", "gray.700")
+    const bgStepTextActive = "blue.500"
+    const bgStepTextInactive = "gray.500"
+    const bgStepContainer = useColorModeValue("gray.50", "blackAlpha.200")
+    const bgStepLoop = useColorModeValue("gray.50", "whiteAlpha.50")
+    const bgTimelineBar = useColorModeValue("gray.200", "gray.600")
+    const bgBorder = useColorModeValue("gray.100", "whiteAlpha.100")
+    const bgAlertCard = useColorModeValue("orange.50", "whiteAlpha.50")
+
 
     const toggleExpand = (id: string) => {
         const newExpanded = new Set(expandedIds)
@@ -71,38 +89,42 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
     }, [searchQuery, selectedStatuses])
 
     const bgMain = useColorModeValue('gray.50', 'gray.900')
-    const bgCard = useColorModeValue('white', 'gray.900')
+    // const bgCard = useColorModeValue('white', 'gray.900') // This is now declared above
     const borderColor = useColorModeValue('gray.200', 'gray.800')
     const textColorMuted = useColorModeValue('gray.500', 'gray.400')
     const textColorMain = useColorModeValue('gray.900', 'white')
+    const textColorSecondary = useColorModeValue('gray.600', 'gray.300') // Added
     const chartFill = useColorModeValue('#1A202C', '#E2E8F0')
     const chartStroke = useColorModeValue('#1A202C', '#E2E8F0')
 
     // Glassmorphism Styles
-    const navBg = useColorModeValue('rgba(255, 255, 255, 0.7)', 'rgba(0, 0, 0, 0.6)')
     const navBorder = useColorModeValue('rgba(255, 255, 255, 0.5)', 'rgba(255, 255, 255, 0.1)')
     const navShadow = "0 8px 32px 0 rgba(31, 38, 135, 0.07)"
 
     return (
         <Box minH="100vh" bg={bgMain} fontFamily="body">
             {/* Floating Capsule Navbar */}
-            <Box position="fixed" top="6" left="50%" transform="translateX(-50%)" zIndex="1000">
-                <Flex
-                    align="center"
-                    gap="2"
-                    p="2"
-                    borderRadius="full"
-                    bg={navBg}
-                    backdropFilter="blur(16px)"
-                    border="1px solid"
-                    borderColor={navBorder}
-                    boxShadow={navShadow}
-                >
+            <Box
+                position="fixed"
+                top="24px"
+                left="50%"
+                transform="translateX(-50%)"
+                zIndex={100}
+                w="auto"
+                p="2"
+                borderRadius="full"
+                bg={useColorModeValue('rgba(255, 255, 255, 0.7)', 'rgba(23, 25, 35, 0.7)')}
+                backdropFilter="blur(24px)"
+                border="1px solid"
+                borderColor={navBorder}
+                boxShadow={navShadow}
+            >
+                <Flex align="center" gap="2">
                     {/* Logo */}
-                    <Box px="3">
+                    <Box px="4">
                         <Image
                             src={useColorModeValue('/logo-on-light.jpg', '/logo-on-dark.jpg')}
-                            h="24px"
+                            h="20px"
                             alt="Strata"
                         />
                     </Box>
@@ -119,7 +141,80 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                     <Box w="1px" h="24px" bg={useColorModeValue('gray.300', 'whiteAlpha.300')} mx="1" />
 
                     {/* Actions */}
-                    <Flex align="center" gap="2" pr="2">
+                    <Flex align="center" gap="2" pr="2" position="relative">
+                        <IconButton
+                            aria-label="Apps"
+                            icon={<FaTh />}
+                            variant="ghost"
+                            rounded="full"
+                            size="sm"
+                            color="gray.500"
+                            _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}
+                            onClick={() => setIsAppsOpen(!isAppsOpen)}
+                        />
+
+                        {isAppsOpen && (
+                            <Portal>
+                                <Box
+                                    position="fixed"
+                                    inset="0"
+                                    bg="transparent"
+                                    zIndex={99}
+                                    onClick={() => setIsAppsOpen(false)}
+                                />
+                                <Box
+                                    bg={useColorModeValue('rgba(255, 255, 255, 0.85)', 'rgba(23, 25, 35, 0.85)')}
+                                    backdropFilter="blur(16px)"
+                                    border="1px solid"
+                                    borderColor={useColorModeValue('blackAlpha.200', 'whiteAlpha.200')}
+                                    w="400px"
+                                    borderRadius="2xl"
+                                    boxShadow="2xl"
+                                    p="6"
+                                    position="fixed"
+                                    top="90px"
+                                    left="50%"
+                                    transform="translateX(-50%)" /* Chakra transform is reliable in Box */
+                                    zIndex={100}
+                                    transition="all 0.2s"
+                                >
+                                    <SimpleGrid columns={3} spacing="6">
+                                        {[
+                                            { icon: FaHome, label: "Portal", color: "blue.500", bg: "blue.50", darkBg: "blue.900" },
+                                            { icon: FaUser, label: "CRM", color: "purple.500", bg: "purple.50", darkBg: "purple.900" },
+                                            { icon: FaClipboardList, label: "Invoice", color: "green.500", bg: "green.50", darkBg: "green.900" },
+                                            { icon: FaBox, label: "Inventory", color: "orange.500", bg: "orange.50", darkBg: "orange.900" },
+                                            { icon: FaChartLine, label: "Analytics", color: "pink.500", bg: "pink.50", darkBg: "pink.900" },
+                                            { icon: FaCheckCircle, label: "Support", color: "cyan.500", bg: "cyan.50", darkBg: "cyan.900" },
+                                            { icon: FaTh, label: "Board", color: "indigo.500", bg: "indigo.50", darkBg: "indigo.900" },
+                                            { icon: FaCalendar, label: "Calendar", color: "red.500", bg: "red.50", darkBg: "red.900" },
+                                            { icon: FaList, label: "More", color: "gray.500", bg: "gray.100", darkBg: "gray.700" },
+                                        ].map((app, i) => (
+                                            <VStack
+                                                key={i}
+                                                cursor="pointer"
+                                                role="group"
+                                                transition="all 0.2s"
+                                                _hover={{ transform: 'scale(1.05)' }}
+                                            >
+                                                <Flex
+                                                    w="12" h="12"
+                                                    align="center" justify="center"
+                                                    rounded="xl"
+                                                    bg={useColorModeValue(app.bg, app.darkBg)}
+                                                    color={app.color}
+                                                    boxShadow="sm"
+                                                    mb="1"
+                                                >
+                                                    <Box as={app.icon} boxSize="5" />
+                                                </Flex>
+                                                <Text fontSize="xs" fontWeight="medium" color={textColorSecondary} _groupHover={{ color: textColorMain }}>{app.label}</Text>
+                                            </VStack>
+                                        ))}
+                                    </SimpleGrid>
+                                </Box>
+                            </Portal>
+                        )}
                         <IconButton
                             aria-label="Toggle Theme"
                             icon={<ThemeIcon />}
@@ -131,7 +226,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                             _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}
                         />
                         <Menu>
-                            <MenuButton as={Button} rounded="full" p="1" variant="ghost" _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}>
+                            <MenuButton as={Button} rounded="full" w="32px" h="32px" minW="32px" p="0" variant="ghost" _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}>
                                 <Avatar size="xs" name="Jhon Doe" bgGradient="linear(to-r, blue.400, purple.500)" color="white" fontWeight="bold" />
                             </MenuButton>
                             <MenuList bg={useColorModeValue('whiteAlpha.900', 'blackAlpha.900')} backdropFilter="blur(10px)" borderColor={borderColor} shadow="lg" p="2" borderRadius="xl">
@@ -153,9 +248,11 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                 {/* Page Header */}
                 <Flex flexDir={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'start', md: 'center' }} mb="8" gap="4">
                     <Box>
-                        <Heading size="lg" fontWeight="bold" bgGradient={useColorModeValue("linear(to-r, gray.900, gray.600)", "linear(to-r, white, gray.400)")} bgClip="text">
-                            Operational Overview
-                        </Heading>
+                        <Flex align="center" gap="2">
+                            <Heading size="lg" fontWeight="bold" bgGradient={useColorModeValue("linear(to-r, gray.900, gray.600)", "linear(to-r, white, gray.400)")} bgClip="text">
+                                Operational Overview
+                            </Heading>
+                        </Flex>
                         <Text color="gray.500" mt="1">Jan 1 - Jan 31, 2025</Text>
                     </Box>
                     <Flex gap="3" align="center">
@@ -178,127 +275,195 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                 </Flex>
 
                 {/* KPI Cards */}
-                <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }} gap="6" mb="8">
-                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
-                        <CardBody p="6">
-                            <Flex justify="space-between" align="start">
-                                <Box>
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Total Inventory</Text>
-                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>$1.2M</Text>
-                                </Box>
-                                <Flex p="2" rounded="lg" bg="blue.50" color="blue.500" _dark={{ bg: 'blue.900', color: 'blue.200' }}>
-                                    <FaBox size="20px" />
-                                </Flex>
-                            </Flex>
-                            <Flex align="center" mt="4" fontSize="sm" color="green.500">
-                                <ArrowForwardIcon transform="rotate(-45deg)" mr="1" />
-                                <Text fontWeight="medium">+0.2%</Text>
-                                <Text color="gray.500" ml="1">vs last month</Text>
-                            </Flex>
-                        </CardBody>
-                    </Card>
-                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
-                        <CardBody p="6">
-                            <Flex justify="space-between" align="start">
-                                <Box>
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Efficiency</Text>
-                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>88%</Text>
-                                </Box>
-                                <Flex p="2" rounded="lg" bg="purple.50" color="purple.500" _dark={{ bg: 'purple.900', color: 'purple.200' }}>
-                                    <FaChartLine size="20px" />
-                                </Flex>
-                            </Flex>
-                            <Flex align="center" mt="4" fontSize="sm" color="green.500">
-                                <ArrowForwardIcon transform="rotate(-45deg)" mr="1" />
-                                <Text fontWeight="medium">+3.5%</Text>
-                                <Text color="gray.500" ml="1">vs last month</Text>
-                            </Flex>
-                        </CardBody>
-                    </Card>
-                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
-                        <CardBody p="6">
-                            <Flex justify="space-between" align="start">
-                                <Box>
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Pending Orders</Text>
-                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>142</Text>
-                                </Box>
-                                <Flex p="2" rounded="lg" bg="orange.50" color="orange.500" _dark={{ bg: 'orange.900', color: 'orange.200' }}>
-                                    <FaClipboardList size="20px" />
-                                </Flex>
-                            </Flex>
-                            <Flex align="center" mt="4" fontSize="sm" color="gray.500">
-                                <Text fontWeight="medium">-12</Text>
-                                <Text ml="1">vs yesterday</Text>
-                            </Flex>
-                        </CardBody>
-                    </Card>
-                    <Card boxShadow="sm" bg={bgCard} borderRadius="2xl" border="1px" borderColor={borderColor}>
-                        <CardBody p="6">
-                            <Flex justify="space-between" align="start">
-                                <Box>
-                                    <Text fontSize="xs" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wide">Low Stock</Text>
-                                    <Text fontSize="3xl" fontWeight="semibold" mt="1" color={textColorMain}>15</Text>
-                                </Box>
-                                <Flex p="2" rounded="lg" bg="red.50" color="red.500" _dark={{ bg: 'red.900', color: 'red.200' }}>
-                                    <FaIndustry size="20px" />
-                                </Flex>
-                            </Flex>
-                            <Flex align="center" mt="4" fontSize="sm" color="red.500">
-                                <Text fontWeight="medium">Requires attention</Text>
-                            </Flex>
-                        </CardBody>
-                    </Card>
-                </Grid>
-
-                {/* Quick Actions */}
-                <Box mb="8" overflowX="auto">
-                    <Flex align="center" gap="6" minW="max-content">
-                        <Text fontSize="lg" fontWeight="medium" color={textColorMuted}>Quick Actions</Text>
-                        <Flex gap="4">
-                            {[
-                                { icon: <AddIcon />, label: "New Order" },
-                                { icon: <CopyIcon />, label: "Duplicate" },
-                                { icon: <ViewIcon />, label: "Export PDF" },
-                                { icon: <EmailIcon />, label: "Send Email" },
-                                { icon: <ViewIcon />, label: "Templates" },
-                            ].map((action, i) => (
-                                <Button
-                                    key={i}
-                                    variant="ghost"
-                                    h="auto"
-                                    p="0"
-                                    flexDirection="column"
-                                    gap="2"
-                                    _hover={{ textDecoration: 'none' }}
-                                    className="group"
-                                >
-                                    <Flex
-                                        w="12"
-                                        h="12"
-                                        align="center"
-                                        justify="center"
-                                        rounded="full"
-                                        bg={useColorModeValue("white", "whiteAlpha.50")}
-                                        border="1px dashed"
-                                        borderColor={borderColor}
-                                        color="gray.400"
-                                        _hover={{ borderColor: 'blue.400', color: 'blue.500', bg: 'blue.50', _dark: { bg: 'blue.900', color: 'blue.200' } }}
-                                        transition="all 0.2s"
-                                        boxShadow="sm"
-                                    >
-                                        {action.icon}
-                                    </Flex>
-                                    <Text fontSize="xs" fontWeight="medium" color="gray.500" _groupHover={{ color: textColorMain }} transition="all 0.2s">{action.label}</Text>
-                                </Button>
-                            ))}
-                        </Flex>
+                <Collapse in={showMetrics} animateOpacity>
+                    <Flex justify="flex-end" mb="2">
+                        <Button size="sm" variant="ghost" onClick={() => setShowMetrics(false)} color="gray.500">
+                            Hide Details <ChevronUpIcon ml="2" />
+                        </Button>
                     </Flex>
-                </Box>
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing="6" mb="8">
+                        <Card
+                            bg={bgCard}
+                            border="1px solid"
+                            borderColor={borderColor}
+                            borderRadius="2xl"
+                            boxShadow="sm"
+                            _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
+                            transition="all 0.2s"
+                        >
+                            <CardBody>
+                                <Flex justify="space-between" align="start">
+                                    <Box>
+                                        <Text fontSize="sm" fontWeight="medium" color={textColorMuted} textTransform="uppercase" letterSpacing="wide">Total Inventory</Text>
+                                        <Heading size="lg" mt="2" color={textColorMain}>$1.2M</Heading>
+                                    </Box>
+                                    <Flex p="3" bg={useColorModeValue('blue.50', 'whiteAlpha.100')} rounded="xl" color="blue.500" align="center" justify="center">
+                                        <FaBox size="24px" />
+                                    </Flex>
+                                </Flex>
+                                <Flex mt="4" align="center" fontSize="sm" color="green.500">
+                                    <FaChartLine />
+                                    <Text ml="1" fontWeight="medium">+0.2%</Text>
+                                    <Text ml="1" color="gray.500">vs last month</Text>
+                                </Flex>
+                            </CardBody>
+                        </Card>
+
+                        <Card
+                            bg={bgCard}
+                            border="1px solid"
+                            borderColor={borderColor}
+                            borderRadius="2xl"
+                            boxShadow="sm"
+                            _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
+                            transition="all 0.2s"
+                        >
+                            <CardBody>
+                                <Flex justify="space-between" align="start">
+                                    <Box>
+                                        <Text fontSize="sm" fontWeight="medium" color={textColorMuted} textTransform="uppercase" letterSpacing="wide">Efficiency</Text>
+                                        <Heading size="lg" mt="2" color={textColorMain}>88%</Heading>
+                                    </Box>
+                                    <Flex p="3" bg={useColorModeValue('purple.50', 'whiteAlpha.100')} rounded="xl" color="purple.500" align="center" justify="center">
+                                        <FaChartLine size="24px" />
+                                    </Flex>
+                                </Flex>
+                                <Flex mt="4" align="center" fontSize="sm" color="green.500">
+                                    <FaChartLine />
+                                    <Text ml="1" fontWeight="medium">+3.5%</Text>
+                                    <Text ml="1" color="gray.500">vs last month</Text>
+                                </Flex>
+                            </CardBody>
+                        </Card>
+
+                        <Card
+                            bg={bgCard}
+                            border="1px solid"
+                            borderColor={borderColor}
+                            borderRadius="2xl"
+                            boxShadow="sm"
+                            _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
+                            transition="all 0.2s"
+                        >
+                            <CardBody>
+                                <Flex justify="space-between" align="start">
+                                    <Box>
+                                        <Text fontSize="sm" fontWeight="medium" color={textColorMuted} textTransform="uppercase" letterSpacing="wide">Pending Orders</Text>
+                                        <Heading size="lg" mt="2" color={textColorMain}>142</Heading>
+                                    </Box>
+                                    <Flex p="3" bg={useColorModeValue('orange.50', 'whiteAlpha.100')} rounded="xl" color="orange.500" align="center" justify="center">
+                                        <FaClipboardList size="24px" />
+                                    </Flex>
+                                </Flex>
+                                <Flex mt="4" align="center" fontSize="sm" color={textColorMuted}>
+                                    <Text fontWeight="medium">-12</Text>
+                                    <Text ml="1">vs yesterday</Text>
+                                </Flex>
+                            </CardBody>
+                        </Card>
+
+                        <Card
+                            bg={bgCard}
+                            border="1px solid"
+                            borderColor={borderColor}
+                            borderRadius="2xl"
+                            boxShadow="sm"
+                            _hover={{ transform: 'translateY(-2px)', boxShadow: 'md' }}
+                            transition="all 0.2s"
+                        >
+                            <CardBody>
+                                <Flex justify="space-between" align="start">
+                                    <Box>
+                                        <Text fontSize="sm" fontWeight="medium" color={textColorMuted} textTransform="uppercase" letterSpacing="wide">Low Stock</Text>
+                                        <Heading size="lg" mt="2" color={textColorMain}>15</Heading>
+                                    </Box>
+                                    <Flex p="3" bg={useColorModeValue('red.50', 'whiteAlpha.100')} rounded="xl" color="red.500" align="center" justify="center">
+                                        <FaIndustry size="24px" />
+                                    </Flex>
+                                </Flex>
+                                <Flex mt="4" align="center" fontSize="sm" color="red.500">
+                                    <Text fontWeight="medium">Requires attention</Text>
+                                </Flex>
+                            </CardBody>
+                        </Card>
+                    </SimpleGrid>
+                </Collapse>
+
+                <Collapse in={!showMetrics} animateOpacity>
+                    <Card
+                        bg={bgCard}
+                        border="1px solid"
+                        borderColor={borderColor}
+                        borderRadius="2xl"
+                        boxShadow="sm"
+                        mb="8"
+                        py="2"
+                    >
+                        <CardBody py="3">
+                            <Flex align="center" justify="space-between" gap="4" direction={{ base: 'column', lg: 'row' }}>
+                                <Flex align="center" gap="6" overflowX="auto" w="full" css={{ '&::-webkit-scrollbar': { display: 'none' } }}>
+                                    <Flex align="center" gap="2" minW="max-content">
+                                        <Text fontSize="sm" color={textColorMuted}>Inventory:</Text>
+                                        <Text fontSize="md" fontWeight="bold" color={textColorMain}>$1.2M</Text>
+                                        <Tag size="sm" colorScheme="green" borderRadius="full">+0.2%</Tag>
+                                    </Flex>
+                                    <Divider orientation="vertical" h="8" display={{ base: 'none', md: 'block' }} />
+                                    <Flex align="center" gap="2" minW="max-content">
+                                        <Text fontSize="sm" color={textColorMuted}>Efficiency:</Text>
+                                        <Text fontSize="md" fontWeight="bold" color={textColorMain}>88%</Text>
+                                        <Tag size="sm" colorScheme="green" borderRadius="full">+3.5%</Tag>
+                                    </Flex>
+                                    <Divider orientation="vertical" h="8" display={{ base: 'none', md: 'block' }} />
+                                    <Flex align="center" gap="2" minW="max-content">
+                                        <Text fontSize="sm" color={textColorMuted}>Pending:</Text>
+                                        <Text fontSize="md" fontWeight="bold" color={textColorMain}>142</Text>
+                                    </Flex>
+                                    <Divider orientation="vertical" h="8" display={{ base: 'none', md: 'block' }} />
+                                    <Flex align="center" gap="2" minW="max-content">
+                                        <Text fontSize="sm" color={textColorMuted}>Low Stock:</Text>
+                                        <Text fontSize="md" fontWeight="bold" color={textColorMain}>15</Text>
+                                        <Tag size="sm" colorScheme="red" borderRadius="full">Alert</Tag>
+                                    </Flex>
+                                </Flex>
+
+                                <Divider orientation="vertical" h="12" display={{ base: 'none', lg: 'block' }} mx="2" />
+
+                                <Flex align="center" gap="3" minW="max-content">
+                                    <Flex gap="2">
+                                        {[
+                                            { icon: <AddIcon />, label: "New" },
+                                            { icon: <CopyIcon />, label: "Copy" },
+                                            { icon: <EmailIcon />, label: "Email" },
+                                        ].map((action, i) => (
+                                            <Button key={i} size="sm" variant="ghost" leftIcon={action.icon} fontSize="xs" color="gray.500">
+                                                {action.label}
+                                            </Button>
+                                        ))}
+                                    </Flex>
+
+                                    <Divider orientation="vertical" h="12" display={{ base: 'none', lg: 'block' }} mx="2" />
+
+                                    <IconButton
+                                        aria-label="Show Details"
+                                        icon={<ChevronDownIcon />}
+                                        size="sm"
+                                        variant="ghost"
+                                        rounded="full"
+                                        onClick={() => setShowMetrics(true)}
+                                        title="Show Details"
+                                    />
+                                </Flex>
+                            </Flex>
+                        </CardBody>
+                    </Card>
+                </Collapse>
+
+
 
                 {/* Main Content Areas */}
-                <Grid templateColumns={{ base: '1fr', lg: 'repeat(3, 1fr)' }} gap="6">
+                < Grid templateColumns={{ base: '1fr', lg: 'repeat(3, 1fr)' }} gap="6" >
                     {/* Orders Table */}
-                    <Box gridColumn={{ lg: 'span 3' }}>
+                    < Box gridColumn={{ lg: 'span 3' }}>
                         <Card boxShadow="lg" bg={bgCard} borderRadius="3xl" border="1px" borderColor={borderColor} overflow="hidden">
                             <CardHeader display="flex" justifyContent="space-between" alignItems="center" borderBottom="1px" borderColor={borderColor} pb="4">
                                 <Flex align="center" gap="2">
@@ -368,8 +533,8 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                     <Fragment key={order.id}>
                                                         <Tr
                                                             cursor="pointer"
-                                                            _hover={{ bg: useColorModeValue("gray.50", "whiteAlpha.50") }}
-                                                            bg={expandedIds.has(order.id) ? useColorModeValue("blue.50", "whiteAlpha.100") : undefined}
+                                                            _hover={{ bg: bgHover }}
+                                                            bg={expandedIds.has(order.id) ? bgExpanded : undefined}
                                                             onClick={() => toggleExpand(order.id)}
                                                             transition="background 0.2s"
                                                         >
@@ -387,21 +552,25 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                             <Td><Tag size="sm" borderRadius="full" variant="subtle" colorScheme={order.colorScheme}>{order.status}</Tag></Td>
                                                             <Td color="gray.500">{order.date}</Td>
                                                             <Td isNumeric onClick={(e) => e.stopPropagation()}>
-                                                                <Menu isLazy>
-                                                                    <MenuButton as={IconButton} aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" color="gray.400" />
-                                                                    <MenuList borderRadius="xl" shadow="lg" zIndex="popover">
-                                                                        <MenuItem icon={<ViewIcon />} onClick={onNavigateToDetail}>View Details</MenuItem>
-                                                                        <MenuItem icon={<EditIcon />}>Edit</MenuItem>
-                                                                        <MenuItem icon={<DeleteIcon />}>Delete</MenuItem>
-                                                                        <MenuItem icon={<EmailIcon />}>Contact</MenuItem>
-                                                                    </MenuList>
-                                                                </Menu>
+                                                                <Flex justify="end" gap={1}>
+                                                                    <IconButton aria-label="View Details" icon={<ViewIcon />} size="xs" variant="ghost" rounded="full" color="gray.400" onClick={onNavigateToDetail} />
+                                                                    <IconButton aria-label="Edit" icon={<EditIcon />} size="xs" variant="ghost" rounded="full" color="gray.400" />
+                                                                    <Menu isLazy>
+                                                                        <MenuButton as={IconButton} aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" color="gray.400" />
+                                                                        <Portal>
+                                                                            <MenuList borderRadius="xl" shadow="lg" zIndex="popover">
+                                                                                <MenuItem icon={<DeleteIcon />}>Delete</MenuItem>
+                                                                                <MenuItem icon={<EmailIcon />}>Contact</MenuItem>
+                                                                            </MenuList>
+                                                                        </Portal>
+                                                                    </Menu>
+                                                                </Flex>
                                                             </Td>
                                                         </Tr>
                                                         {expandedIds.has(order.id) && (
                                                             <Tr>
                                                                 <Td colSpan={6} p={0}>
-                                                                    <Box p={6} bg={useColorModeValue("gray.50", "blackAlpha.200")} pl={12}>
+                                                                    <Box p={6} bg={bgStepContainer} pl={12}>
                                                                         <Flex direction={{ base: 'column', md: 'row' }} gap={8}>
                                                                             <VStack align="start" flex="1" spacing={4}>
                                                                                 <Flex align="center" gap={3}>
@@ -414,10 +583,10 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                                                 <Divider borderColor={borderColor} />
                                                                                 {/* Re-using step visual logic */}
                                                                                 <Box w="full" position="relative" py={2}>
-                                                                                    <Box position="absolute" top="15px" left="0" w="full" h="2px" bg={useColorModeValue("gray.200", "gray.600")} />
+                                                                                    <Box position="absolute" top="15px" left="0" w="full" h="2px" bg={bgTimelineBar} />
                                                                                     <Flex justify="space-between" position="relative" zIndex={1}>
                                                                                         {['Placed', 'Mfg', 'Qual', 'Ship'].map((step, i) => (
-                                                                                            <Flex key={i} direction="column" align="center" bg={useColorModeValue("gray.50", "blackAlpha.200")}>
+                                                                                            <Flex key={i} direction="column" align="center" bg={bgStepLoop}>
                                                                                                 <Flex
                                                                                                     w={8} h={8} rounded="full" align="center" justify="center"
                                                                                                     bg={i <= 1 ? "blue.500" : "gray.200"}
@@ -465,13 +634,12 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                 variant="outline"
                                                 borderColor={expandedIds.has(order.id) ? "blue.400" : borderColor}
                                                 boxShadow={expandedIds.has(order.id) ? "0 0 0 1px #4299E1" : "none"}
-                                                bg={useColorModeValue("white", "gray.800")}
+                                                bg={bgCard}
                                                 cursor="pointer"
                                                 onClick={() => toggleExpand(order.id)}
                                                 transition="all 0.2s"
                                                 _hover={{ borderColor: "blue.300" }}
                                                 borderRadius="xl"
-                                                overflow="hidden"
                                             >
                                                 <CardBody p="5">
                                                     <Flex justify="space-between" mb="4">
@@ -482,7 +650,19 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                                 <Text fontSize="xs" color="gray.500">{order.id}</Text>
                                                             </Box>
                                                         </Flex>
-                                                        <IconButton aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" onClick={(e) => e.stopPropagation()} />
+                                                        <Flex justify="end" gap={1}>
+                                                            <IconButton aria-label="View Details" icon={<ViewIcon />} size="xs" variant="ghost" rounded="full" color="gray.400" onClick={(e) => { e.stopPropagation(); onNavigateToDetail(); }} />
+                                                            <IconButton aria-label="Edit" icon={<EditIcon />} size="xs" variant="ghost" rounded="full" color="gray.400" onClick={(e) => e.stopPropagation()} />
+                                                            <Menu isLazy>
+                                                                <MenuButton as={IconButton} aria-label="More" icon={<SettingsIcon />} size="xs" variant="ghost" rounded="full" onClick={(e) => e.stopPropagation()} />
+                                                                <Portal>
+                                                                    <MenuList borderRadius="xl" shadow="lg" zIndex="popover">
+                                                                        <MenuItem icon={<DeleteIcon />} onClick={(e) => e.stopPropagation()}>Delete</MenuItem>
+                                                                        <MenuItem icon={<EmailIcon />} onClick={(e) => e.stopPropagation()}>Contact</MenuItem>
+                                                                    </MenuList>
+                                                                </Portal>
+                                                            </Menu>
+                                                        </Flex>
                                                     </Flex>
 
                                                     <VStack align="stretch" spacing="2">
@@ -501,15 +681,49 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
 
                                                     {expandedIds.has(order.id) && (
                                                         <Box mt="4" pt="4" borderTop="1px" borderColor={borderColor}>
-                                                            <Flex align="center" gap="2" mb="3">
-                                                                <FaBox size="14px" color="gray" />
-                                                                <Text fontSize="xs" fontWeight="bold" color="gray.500">Order Items (2)</Text>
-                                                            </Flex>
-                                                            <VStack align="stretch" spacing="1" mb="4">
-                                                                <Flex justify="space-between" fontSize="xs"><Text color="gray.500">Office Chair</Text><Text fontWeight="bold">x1</Text></Flex>
-                                                                <Flex justify="space-between" fontSize="xs"><Text color="gray.500">Standing Desk</Text><Text fontWeight="bold">x1</Text></Flex>
+                                                            <VStack align="stretch" spacing="4">
+                                                                <Flex align="center" gap={3}>
+                                                                    <Avatar icon={<FaUser />} bg="gray.200" color="gray.500" size="sm" />
+                                                                    <Box>
+                                                                        <Text fontWeight="bold" fontSize="sm" color={textColorMain}>Sarah Johnson</Text>
+                                                                        <Text fontSize="xs" color="gray.500">Project Manager</Text>
+                                                                    </Box>
+                                                                </Flex>
+
+                                                                <Divider />
+
+                                                                <Box w="full" position="relative" py={2}>
+                                                                    <Box position="absolute" top="12px" left="0" w="full" h="2px" bg={bgTimelineBar} />
+                                                                    <Flex justify="space-between" position="relative" zIndex={1}>
+                                                                        {['Placed', 'Mfg', 'Qual', 'Ship'].map((step, i) => (
+                                                                            <Flex key={i} direction="column" align="center" bg={bgCard} px="1">
+                                                                                <Flex
+                                                                                    w={6} h={6} rounded="full" align="center" justify="center"
+                                                                                    bg={i <= 1 ? "blue.500" : "gray.200"}
+                                                                                    color={i <= 1 ? "white" : "gray.400"}
+                                                                                    _dark={{ bg: i <= 1 ? "blue.400" : "gray.700" }}
+                                                                                >
+                                                                                    {i < 1 ? <FaCheckCircle size="12px" /> : <Box w={1.5} h={1.5} rounded="full" bg={i <= 1 ? "white" : "gray.400"} />}
+                                                                                </Flex>
+                                                                                <Text fontSize="xs" mt={1} fontWeight="medium" color={i <= 1 ? "blue.500" : "gray.500"}>{step}</Text>
+                                                                            </Flex>
+                                                                        ))}
+                                                                    </Flex>
+                                                                </Box>
+
+                                                                <Card variant="outline" bg={bgAlertCard} borderColor={borderColor}>
+                                                                    <CardBody p={3}>
+                                                                        <Flex gap={3} align="start">
+                                                                            <Box color="orange.500" mt="1"><FaExclamationTriangle /></Box>
+                                                                            <Box>
+                                                                                <Text fontSize="sm" fontWeight="bold" color="orange.700" _dark={{ color: "orange.300" }}>Alert: Customs Delay</Text>
+                                                                                <Text fontSize="xs" color="orange.600" _dark={{ color: "orange.400" }} mt={1}>Held at port. ETA +24h.</Text>
+                                                                                <Text fontSize="xs" color="blue.500" mt={2} cursor="pointer" onClick={(e) => { e.stopPropagation(); setTrackingOrder(order); }}>Track Shipment</Text>
+                                                                            </Box>
+                                                                        </Flex>
+                                                                    </CardBody>
+                                                                </Card>
                                                             </VStack>
-                                                            <Button size="sm" width="full" colorScheme="blue" variant="solid" onClick={(e) => { e.stopPropagation(); setTrackingOrder(order); }}>Track</Button>
                                                         </Box>
                                                     )}
                                                 </CardBody>
@@ -519,10 +733,10 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                 )}
                             </CardBody>
                         </Card>
-                    </Box>
+                    </Box >
 
                     {/* Charts */}
-                    <Box gridColumn={{ lg: 'span 2' }}>
+                    < Box gridColumn={{ lg: 'span 2' }}>
                         <Card boxShadow="sm" borderRadius="2xl" border="1px" borderColor={borderColor}>
                             <CardHeader>
                                 <Heading size="md" color={textColorMain}>Revenue Trend</Heading>
@@ -542,7 +756,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                 </Box>
                             </CardBody>
                         </Card>
-                    </Box>
+                    </Box >
 
                     <Box gridColumn={{ lg: 'span 1' }}>
                         <Card boxShadow="sm" borderRadius="2xl" border="1px" borderColor={borderColor}>
@@ -564,11 +778,11 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                             </CardBody>
                         </Card>
                     </Box>
-                </Grid>
-            </Box>
+                </Grid >
+            </Box >
 
             {/* Modal - Track Order */}
-            <Modal isOpen={!!trackingOrder} onClose={() => setTrackingOrder(null)} size="2xl" isCentered>
+            < Modal isOpen={!!trackingOrder} onClose={() => setTrackingOrder(null)} size="2xl" isCentered >
                 <ModalOverlay backdropFilter="blur(4px)" bg="blackAlpha.300" />
                 <ModalContent borderRadius="2xl" bg={bgCard}>
                     <ModalHeader display="flex" justifyContent="space-between" alignItems="center">
@@ -637,8 +851,8 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                         </Grid>
                     </ModalBody>
                 </ModalContent>
-            </Modal>
-        </Box>
+            </Modal >
+        </Box >
     )
 }
 
@@ -651,24 +865,26 @@ function NavItem({ icon, label, isActive }: { icon: any, label: string, isActive
         <Button
             variant="ghost"
             rounded="full"
-            p="2"
-            h="auto"
+            px="4"
+            h="36px"
             bg={isActive ? activeBg : 'transparent'}
             color={isActive ? activeColor : 'gray.500'}
             _hover={{ bg: hoverBg, '.nav-label': { maxW: '200px', opacity: 1, ml: 2 } }}
+            gap="2"
+            sx={{ gap: '0.5rem' }}
+            _hover={{ bg: hoverBg, '.nav-label': { maxW: '100px', opacity: 1 } }}
             display="flex"
             alignItems="center"
             overflow="hidden"
             transition="all 0.3s"
             className="group"
         >
-            <Box as={icon} size="20px" />
+            <Box as={icon} size="16px" />
             <Box
                 as="span"
                 className="nav-label"
-                maxW={isActive ? '200px' : '0'}
+                maxW={isActive ? '100px' : '0'}
                 opacity={isActive ? 1 : 0}
-                ml={isActive ? 2 : 0}
                 whiteSpace="nowrap"
                 transition="all 0.3s"
                 fontSize="sm"
@@ -679,3 +895,5 @@ function NavItem({ icon, label, isActive }: { icon: any, label: string, isActive
         </Button>
     )
 }
+
+
