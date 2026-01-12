@@ -1,10 +1,11 @@
-import { useState, useMemo, Fragment } from 'react'
+import { useState, useMemo, Fragment, useEffect } from 'react'
 import {
     Box, Flex, Grid, Heading, Text, Button, Input, InputGroup, InputLeftElement,
     Avatar, IconButton, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
     Card, CardBody, CardHeader, VStack, Divider, Tag, SimpleGrid, ButtonGroup, useColorMode, useColorModeValue, Collapse,
     Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Image, Tooltip as ChakraTooltip, useDisclosure,
-    Menu, MenuButton, MenuList, MenuItem, MenuDivider, Checkbox, CheckboxGroup, Stack, Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverArrow, Portal
+    Menu, MenuButton, MenuList, MenuItem, MenuDivider, Checkbox, CheckboxGroup, Stack, Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverArrow, Portal,
+    Tabs, TabList, Tab, Select, TabIndicator
 } from '@chakra-ui/react'
 import {
     ChevronDownIcon, SearchIcon, BellIcon, SettingsIcon, CheckCircleIcon,
@@ -30,9 +31,10 @@ const salesData = [
 ]
 
 const recentOrders = [
-    { id: "#ORD-2055", customer: "AutoManfacture Co.", amount: "$385,000", status: "Pending Review", date: "Dec 20, 2025", avatar: "AutoManfacture Co.", colorScheme: 'gray' },
-    { id: "#ORD-2054", customer: "TechDealer Solutions", amount: "$62,500", status: "In Production", date: "Nov 15, 2025", avatar: "TechDealer Solutions", colorScheme: 'blue' },
-    { id: "#ORD-2053", customer: "Urban Living Inc.", amount: "$112,000", status: "Shipped", date: "Oct 30, 2025", avatar: "Urban Living Inc.", colorScheme: 'green' },
+    { id: "#ORD-2055", customer: "AutoManfacture Co.", client: "AutoManfacture Co.", project: "Office Renovation", amount: "$385,000", status: "Pending Review", date: "Dec 20, 2025", initials: "AC", colorScheme: 'gray' },
+    { id: "#ORD-2054", customer: "TechDealer Solutions", client: "TechDealer Solutions", project: "HQ Upgrade", amount: "$62,500", status: "In Production", date: "Nov 15, 2025", initials: "TS", colorScheme: 'blue' },
+    { id: "#ORD-2053", customer: "Urban Living Inc.", client: "Urban Living Inc.", project: "Lobby Refresh", amount: "$112,000", status: "Shipped", date: "Oct 30, 2025", initials: "UL", colorScheme: 'green' },
+    { id: "#ORD-2052", customer: "Global Logistics", client: "Global Logistics", project: "Warehouse Expansion", amount: "$45,000", status: "Delivered", date: "Oct 15, 2025", initials: "GL", colorScheme: 'gray' },
 ]
 
 const trackingSteps = [
@@ -48,7 +50,26 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
     const ThemeIcon = colorMode === 'light' ? MoonIcon : SunIcon
 
     const [searchQuery, setSearchQuery] = useState('')
-    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+    const [selectedClient, setSelectedClient] = useState('All Clients')
+    const [selectedProject, setSelectedProject] = useState('All Projects')
+    const [tabIndex, setTabIndex] = useState(0) // 0: Active, 1: Completed, 2: All
+
+    const clients = ['All Clients', ...Array.from(new Set(recentOrders.map(o => o.client)))]
+
+    const availableProjects = useMemo(() => {
+        if (selectedClient === 'All Clients') {
+            return ['All Projects', ...Array.from(new Set(recentOrders.map(o => o.project)))]
+        }
+        return ['All Projects', ...Array.from(new Set(recentOrders.filter(o => o.client === selectedClient).map(o => o.project)))]
+    }, [selectedClient])
+
+    useEffect(() => {
+        if (selectedClient !== 'All Clients' && availableProjects.length > 1) {
+            setSelectedProject(availableProjects[1])
+        } else {
+            setSelectedProject('All Projects')
+        }
+    }, [selectedClient, availableProjects])
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
     const [trackingOrder, setTrackingOrder] = useState<any>(null)
     const [showMetrics, setShowMetrics] = useState(true)
@@ -83,10 +104,31 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
         return recentOrders.filter(order => {
             const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 order.customer.toLowerCase().includes(searchQuery.toLowerCase())
-            const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(order.status)
-            return matchesSearch && matchesStatus
+
+            const matchesProject = selectedProject === 'All Projects' || order.project === selectedProject
+            const matchesClient = selectedClient === 'All Clients' || order.client === selectedClient
+
+            let matchesTab = true;
+            const isCompleted = ['Delivered', 'Completed'].includes(order.status);
+
+            if (tabIndex === 0) { // Active
+                matchesTab = !isCompleted
+            } else if (tabIndex === 1) { // Completed
+                matchesTab = isCompleted
+            }
+            // Tab 2 is All, so matchesTab remains true
+
+            return matchesSearch && matchesProject && matchesClient && matchesTab
         })
-    }, [searchQuery, selectedStatuses])
+    }, [searchQuery, selectedProject, selectedClient, tabIndex])
+
+    const counts = useMemo(() => {
+        return {
+            active: recentOrders.filter(o => !['Delivered', 'Completed'].includes(o.status)).length,
+            completed: recentOrders.filter(o => ['Delivered', 'Completed'].includes(o.status)).length,
+            all: recentOrders.length
+        }
+    }, [])
 
     const bgMain = useColorModeValue('gray.50', 'gray.900')
     // const bgCard = useColorModeValue('white', 'gray.900') // This is now declared above
@@ -465,12 +507,54 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                     {/* Orders Table */}
                     < Box gridColumn={{ lg: 'span 3' }}>
                         <Card boxShadow="lg" bg={bgCard} borderRadius="3xl" border="1px" borderColor={borderColor} overflow="hidden">
-                            <CardHeader display="flex" justifyContent="space-between" alignItems="center" borderBottom="1px" borderColor={borderColor} pb="4">
-                                <Flex align="center" gap="2">
+                            <CardHeader display="flex" flexDirection={{ base: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" borderBottom="1px" borderColor={borderColor} pb="4" gap={4}>
+                                <Box>
                                     <Heading size="md" color={textColorMain}>Recent Orders</Heading>
-                                    <Tag size="sm" borderRadius="full" colorScheme="gray">Active</Tag>
-                                </Flex>
-                                <Flex gap="3" align="center">
+                                    <Tabs mt={2} variant="soft-rounded" colorScheme="blue" size="sm" index={tabIndex} onChange={setTabIndex}>
+                                        <TabList>
+                                            <Tab>
+                                                Active
+                                                <Tag size="sm" ml={2} borderRadius="full" colorScheme={tabIndex === 0 ? "whiteAlpha" : "gray"}>{counts.active}</Tag>
+                                            </Tab>
+                                            <Tab>
+                                                Completed
+                                                <Tag size="sm" ml={2} borderRadius="full" colorScheme={tabIndex === 1 ? "whiteAlpha" : "gray"}>{counts.completed}</Tag>
+                                            </Tab>
+                                            <Tab>
+                                                All
+                                                <Tag size="sm" ml={2} borderRadius="full" colorScheme={tabIndex === 2 ? "whiteAlpha" : "gray"}>{counts.all}</Tag>
+                                            </Tab>
+                                        </TabList>
+                                    </Tabs>
+                                </Box>
+
+                                <Flex gap="3" align="center" wrap="wrap">
+                                    {/* Filters */}
+                                    {/* Filters */}
+                                    <Select
+                                        size="sm"
+                                        borderRadius="lg"
+                                        maxW="150px"
+                                        value={selectedClient}
+                                        onChange={(e) => setSelectedClient(e.target.value)}
+                                        bg={useColorModeValue('white', 'gray.700')}
+                                    >
+                                        {clients.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </Select>
+
+                                    <Select
+                                        size="sm"
+                                        borderRadius="lg"
+                                        maxW="150px"
+                                        value={selectedProject}
+                                        onChange={(e) => setSelectedProject(e.target.value)}
+                                        bg={useColorModeValue('white', 'gray.700')}
+                                    >
+                                        {availableProjects.map(p => <option key={p} value={p}>{p}</option>)}
+                                    </Select>
+
+                                    <Box w="1px" h="20px" bg={borderColor} display={{ base: 'none', md: 'block' }} />
+
                                     <ButtonGroup size="sm" isAttached variant="outline" borderRadius="lg">
                                         <IconButton
                                             aria-label="List View"
@@ -487,30 +571,6 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                             _active={{ bg: useColorModeValue("gray.100", "whiteAlpha.200"), color: "blue.500" }}
                                         />
                                     </ButtonGroup>
-                                    <Box w="1px" h="20px" bg={borderColor} />
-                                    <Menu closeOnSelect={false}>
-                                        <MenuButton as={Button} size="sm" rightIcon={<ChevronDownIcon />} variant="outline" borderRadius="lg" fontWeight="medium">
-                                            Status
-                                        </MenuButton>
-                                        <MenuList minW="240px" zIndex="popover" shadow="lg" borderRadius="xl">
-                                            <CheckboxGroup
-                                                value={selectedStatuses}
-                                                onChange={(values) => setSelectedStatuses(values as string[])}
-                                            >
-                                                <VStack align="start" px="3" py="2" spacing="2">
-                                                    {['Pending Review', 'In Production', 'Shipped'].map((status) => (
-                                                        <Checkbox key={status} value={status} w="full">
-                                                            {status}
-                                                        </Checkbox>
-                                                    ))}
-                                                </VStack>
-                                            </CheckboxGroup>
-                                            <MenuDivider />
-                                            <MenuItem onClick={() => setSelectedStatuses([])} closeOnSelect={true} fontSize="xs" color="blue.500">
-                                                Clear Filter
-                                            </MenuItem>
-                                        </MenuList>
-                                    </Menu>
                                 </Flex>
                             </CardHeader>
 
