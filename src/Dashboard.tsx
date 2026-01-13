@@ -12,7 +12,7 @@ import {
     ChevronRightIcon, EmailIcon, ViewIcon, EditIcon, DeleteIcon,
     MoonIcon, SunIcon, ChevronUpIcon, ArrowForwardIcon, CopyIcon, AddIcon, CalendarIcon
 } from '@chakra-ui/icons'
-import { FaHome, FaExclamationTriangle, FaBox, FaIndustry, FaClipboardList, FaTruck, FaTh, FaList, FaSignOutAlt, FaUser, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChartLine, FaCalendar } from 'react-icons/fa'
+import { FaHome, FaExclamationTriangle, FaBox, FaIndustry, FaClipboardList, FaTruck, FaTh, FaList, FaSignOutAlt, FaUser, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChartLine, FaCalendar, FaFilePdf } from 'react-icons/fa'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts'
 
 const inventoryData = [
@@ -52,7 +52,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedClient, setSelectedClient] = useState('All Clients')
     const [selectedProject, setSelectedProject] = useState('All Projects')
-    const [tabIndex, setTabIndex] = useState(0) // 0: Active, 1: Completed, 2: All
+    const [tabIndex, setTabIndex] = useState(0) // 0: Active, 1: Completed, 2: All, 3: Metrics
 
     const clients = ['All Clients', ...Array.from(new Set(recentOrders.map(o => o.client)))]
 
@@ -100,6 +100,29 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
         setExpandedIds(newExpanded)
     }
 
+    // Dynamic Metrics Data based on current filters (Client/Project)
+    const metricsData = useMemo(() => {
+        const dataToAnalyze = recentOrders.filter(order => {
+            const matchesProject = selectedProject === 'All Projects' || order.project === selectedProject
+            const matchesClient = selectedClient === 'All Clients' || order.client === selectedClient
+            return matchesProject && matchesClient
+        })
+
+        const totalValue = dataToAnalyze.reduce((sum, order) => {
+            return sum + parseInt(order.amount.replace(/[^0-9]/g, ''))
+        }, 0)
+
+        const activeCount = dataToAnalyze.filter(o => !['Delivered', 'Completed'].includes(o.status)).length
+        const completedCount = dataToAnalyze.filter(o => ['Delivered', 'Completed'].includes(o.status)).length
+
+        return {
+            revenue: totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }),
+            activeOrders: activeCount,
+            completedOrders: completedCount,
+            efficiency: dataToAnalyze.length > 0 ? Math.round((completedCount / dataToAnalyze.length) * 100) : 0
+        }
+    }, [selectedProject, selectedClient])
+
     const filteredOrders = useMemo(() => {
         return recentOrders.filter(order => {
             const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -115,6 +138,8 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                 matchesTab = !isCompleted
             } else if (tabIndex === 1) { // Completed
                 matchesTab = isCompleted
+            } else if (tabIndex === 3) { // Metrics
+                matchesTab = true
             }
             // Tab 2 is All, so matchesTab remains true
 
@@ -429,6 +454,32 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                             </CardBody>
                         </Card>
                     </SimpleGrid>
+
+                    <Flex align="center" gap="4" mt="6" mb="6" animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                        <Text fontSize="sm" fontWeight="medium" color={textColorMuted}>Quick Actions:</Text>
+                        {[
+                            { icon: <AddIcon boxSize={3} />, label: "New Order" },
+                            { icon: <CopyIcon boxSize={3} />, label: "Duplicate" },
+                            { icon: <FaFilePdf size="12px" />, label: "Export PDF" },
+                            { icon: <EmailIcon boxSize={3} />, label: "Send Email" },
+                        ].map((action, i) => (
+                            <Button
+                                key={i}
+                                size="sm"
+                                variant="outline"
+                                leftIcon={action.icon}
+                                rounded="full"
+                                borderColor={borderColor}
+                                _hover={{ borderColor: 'blue.500', bg: 'blue.50', color: 'blue.600', _dark: { bg: 'blue.900', color: 'blue.200', borderColor: 'blue.500' } }}
+                                color={textColorMuted}
+                                fontSize="xs"
+                                h="8"
+                                fontWeight="medium"
+                            >
+                                {action.label}
+                            </Button>
+                        ))}
+                    </Flex>
                 </Collapse>
 
                 <Collapse in={!showMetrics} animateOpacity>
@@ -512,17 +563,20 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                     <Heading size="md" color={textColorMain}>Recent Orders</Heading>
                                     <Tabs mt={2} variant="soft-rounded" colorScheme="blue" size="sm" index={tabIndex} onChange={setTabIndex}>
                                         <TabList>
-                                            <Tab>
+                                            <Tab _selected={{ color: 'white', bg: 'blue.600' }} fontWeight="semibold">
                                                 Active
-                                                <Tag size="sm" ml={2} borderRadius="full" colorScheme={tabIndex === 0 ? "whiteAlpha" : "gray"}>{counts.active}</Tag>
+                                                <Tag size="sm" ml={2} borderRadius="full" variant="solid" bg={tabIndex === 0 ? "whiteAlpha.300" : "gray.200"} color={tabIndex === 0 ? "white" : "gray.600"}>{counts.active}</Tag>
                                             </Tab>
-                                            <Tab>
+                                            <Tab _selected={{ color: 'white', bg: 'blue.600' }} fontWeight="semibold">
                                                 Completed
-                                                <Tag size="sm" ml={2} borderRadius="full" colorScheme={tabIndex === 1 ? "whiteAlpha" : "gray"}>{counts.completed}</Tag>
+                                                <Tag size="sm" ml={2} borderRadius="full" variant="solid" bg={tabIndex === 1 ? "whiteAlpha.300" : "gray.200"} color={tabIndex === 1 ? "white" : "gray.600"}>{counts.completed}</Tag>
                                             </Tab>
-                                            <Tab>
+                                            <Tab _selected={{ color: 'white', bg: 'blue.600' }} fontWeight="semibold">
                                                 All
-                                                <Tag size="sm" ml={2} borderRadius="full" colorScheme={tabIndex === 2 ? "whiteAlpha" : "gray"}>{counts.all}</Tag>
+                                                <Tag size="sm" ml={2} borderRadius="full" variant="solid" bg={tabIndex === 2 ? "whiteAlpha.300" : "gray.200"} color={tabIndex === 2 ? "white" : "gray.600"}>{counts.all}</Tag>
+                                            </Tab>
+                                            <Tab _selected={{ color: 'white', bg: 'blue.600' }} fontWeight="semibold">
+                                                Metrics
                                             </Tab>
                                         </TabList>
                                     </Tabs>
@@ -575,7 +629,78 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                             </CardHeader>
 
                             <CardBody p="0">
-                                {viewMode === 'list' ? (
+                                {tabIndex === 3 ? (
+                                    <Box p={6}>
+                                        <Flex justify="space-between" align="center" mb={6}>
+                                            <Box>
+                                                <Heading size="md" color={textColorMain}>Performance Metrics</Heading>
+                                                <Text fontSize="sm" color={textColorMuted}>
+                                                    {selectedClient === 'All Clients' ? 'Overview across all clients' : `Showing analytics for ${selectedClient}`}
+                                                </Text>
+                                            </Box>
+                                        </Flex>
+
+                                        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+                                            <Card bg={useColorModeValue('green.50', 'whiteAlpha.100')} border="1px solid" borderColor={useColorModeValue('green.200', 'whiteAlpha.200')}>
+                                                <CardBody>
+                                                    <Flex justify="space-between" align="center" mb={2}>
+                                                        <Text fontWeight="medium" color={useColorModeValue('green.700', 'green.300')}>Total Revenue</Text>
+                                                        <FaChartLine color="green" />
+                                                    </Flex>
+                                                    <Heading size="lg" color={useColorModeValue('green.800', 'green.200')}>{metricsData.revenue}</Heading>
+                                                    <Text fontSize="xs" mt={1} color={useColorModeValue('green.600', 'green.400')}>Based on visible orders</Text>
+                                                </CardBody>
+                                            </Card>
+                                            <Card bg={useColorModeValue('blue.50', 'whiteAlpha.100')} border="1px solid" borderColor={useColorModeValue('blue.200', 'whiteAlpha.200')}>
+                                                <CardBody>
+                                                    <Flex justify="space-between" align="center" mb={2}>
+                                                        <Text fontWeight="medium" color={useColorModeValue('blue.700', 'blue.300')}>Active Orders</Text>
+                                                        <FaBox color="blue" />
+                                                    </Flex>
+                                                    <Heading size="lg" color={useColorModeValue('blue.800', 'blue.200')}>{metricsData.activeOrders}</Heading>
+                                                    <Text fontSize="xs" mt={1} color={useColorModeValue('blue.600', 'blue.400')}>In production or pending</Text>
+                                                </CardBody>
+                                            </Card>
+                                            <Card bg={useColorModeValue('purple.50', 'whiteAlpha.100')} border="1px solid" borderColor={useColorModeValue('purple.200', 'whiteAlpha.200')}>
+                                                <CardBody>
+                                                    <Flex justify="space-between" align="center" mb={2}>
+                                                        <Text fontWeight="medium" color={useColorModeValue('purple.700', 'purple.300')}>Completion Rate</Text>
+                                                        <FaCheckCircle color="purple" />
+                                                    </Flex>
+                                                    <Heading size="lg" color={useColorModeValue('purple.800', 'purple.200')}>{metricsData.efficiency}%</Heading>
+                                                    <Text fontSize="xs" mt={1} color={useColorModeValue('purple.600', 'purple.400')}>Orders delivered successfully</Text>
+                                                </CardBody>
+                                            </Card>
+                                            <Card bg={useColorModeValue('orange.50', 'whiteAlpha.100')} border="1px solid" borderColor={useColorModeValue('orange.200', 'whiteAlpha.200')}>
+                                                <CardBody>
+                                                    <Flex justify="space-between" align="center" mb={2}>
+                                                        <Text fontWeight="medium" color={useColorModeValue('orange.700', 'orange.300')}>Project Count</Text>
+                                                        <FaClipboardList color="orange" />
+                                                    </Flex>
+                                                    <Heading size="lg" color={useColorModeValue('orange.800', 'orange.200')}>
+                                                        {availableProjects.length > 0 && availableProjects[0] === 'All Projects' ? availableProjects.length - 1 : availableProjects.length}
+                                                    </Heading>
+                                                    <Text fontSize="xs" mt={1} color={useColorModeValue('orange.600', 'orange.400')}>Active projects</Text>
+                                                </CardBody>
+                                            </Card>
+                                        </SimpleGrid>
+
+                                        <Box h="300px" bg={bgCard} p={6} borderRadius="xl" border="1px solid" borderColor={borderColor}>
+                                            <Heading size="sm" mb={4} color={textColorMain}>Monthly Trends</Heading>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={salesData}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={useColorModeValue('#E2E8F0', '#2D3748')} />
+                                                    <XAxis dataKey="name" stroke={useColorModeValue('#718096', '#A0AEC0')} fontSize={12} tickLine={false} axisLine={false} />
+                                                    <YAxis stroke={useColorModeValue('#718096', '#A0AEC0')} fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                                                    <Tooltip
+                                                        contentStyle={{ backgroundColor: useColorModeValue('#fff', '#1A202C'), borderRadius: '8px', border: '1px solid ' + useColorModeValue('#E2E8F0', '#2D3748') }}
+                                                    />
+                                                    <Bar dataKey="sales" fill="#3182CE" radius={[4, 4, 0, 0]} />
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </Box>
+                                    </Box>
+                                ) : viewMode === 'list' ? (
                                     <TableContainer>
                                         <Table variant="simple">
                                             <Thead bg={useColorModeValue('gray.50', 'whiteAlpha.50')}>

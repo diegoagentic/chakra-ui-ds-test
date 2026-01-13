@@ -3,14 +3,15 @@ import {
     IconButton, Badge, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
     Card, CardBody, VStack, Divider, SimpleGrid,
     Progress, Icon, Checkbox, Tag, useColorModeValue, Collapse,
-    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, useDisclosure
+    Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, useDisclosure,
+    Tabs, TabList, TabPanels, Tab, TabPanel, HStack, Textarea
 } from '@chakra-ui/react'
 import {
     SearchIcon, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon, AddIcon,
     CopyIcon, EmailIcon, ViewIcon, CheckCircleIcon,
-    CloseIcon, WarningIcon, DownloadIcon, AttachmentIcon, MoonIcon, SunIcon, StarIcon, RepeatIcon
+    CloseIcon, WarningIcon, DownloadIcon, AttachmentIcon, MoonIcon, SunIcon, StarIcon, RepeatIcon, ArrowRightIcon
 } from '@chakra-ui/icons'
-import { FaHome, FaBox, FaChartLine, FaClipboardList, FaTh, FaUser, FaCheckCircle, FaCalendar, FaList, FaSignOutAlt, FaTruck, FaEdit, FaDownload, FaEllipsisH, FaRobot } from 'react-icons/fa'
+import { FaHome, FaBox, FaChartLine, FaClipboardList, FaTh, FaUser, FaCheckCircle, FaCalendar, FaList, FaSignOutAlt, FaTruck, FaEdit, FaDownload, FaEllipsisH, FaRobot, FaPaperPlane } from 'react-icons/fa'
 import { useState } from 'react'
 import { useColorMode, Image, Portal, Menu, MenuButton, MenuList, MenuItem, MenuDivider, Avatar, Radio, RadioGroup, Stack } from '@chakra-ui/react'
 
@@ -23,6 +24,44 @@ const items = [
     { id: "SKU-OFF-2025-006", name: "Reception Lounge Chair", category: "Lobby Series", properties: "Velvet / Teal", stock: 95, status: "In Stock", colorScheme: 'gray' },
     { id: "SKU-OFF-2025-007", name: "Drafting Stool High", category: "Studio Series", properties: "Mesh / Black", stock: 340, status: "In Stock", colorScheme: 'gray' },
     { id: "SKU-OFF-2025-008", name: "Bench Seating 3-Seat", category: "Waiting Series", properties: "Metal / Chrome", stock: 28, status: "Low Stock", colorScheme: 'yellow' },
+]
+
+const messages = [
+    {
+        id: 1,
+        sender: "System",
+        avatar: "",
+        content: "Order #ORD-2055 has been flagged for manual review due to stock discrepancy.",
+        time: "2 hours ago",
+        type: "system",
+    },
+    {
+        id: 2,
+        sender: "AI Assistant",
+        avatar: "AI",
+        content: "I've detected a 5-item discrepancy between local and remote warehouse counts for SKU-OFF-2025-003. Recommended action: Synchronize with Warehouse DB or perform manual count.",
+        time: "2 hours ago",
+        type: "ai",
+    },
+    {
+        id: 3,
+        sender: "Sarah Chen",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+        content: "@InventoryManager I'm verifying the physical stock in Zone B. Will update shortly.",
+        time: "1 hour ago",
+        type: "user",
+    }
+]
+
+const collaborators = [
+    { name: "Sarah Chen", role: "Logistics Mgr", status: "online", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" },
+    { name: "Mike Ross", role: "Warehouse Lead", status: "offline", avatar: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" },
+    { name: "AI Agent", role: "System Bot", status: "online", avatar: "AI" },
+]
+
+const documents = [
+    { name: "Packing_Slip_2055.pdf", size: "245 KB", uploaded: "Jan 12, 2025" },
+    { name: "Invoice_INV-8992.pdf", size: "1.2 MB", uploaded: "Jan 12, 2025" },
 ]
 
 export default function Detail({ onBack }: { onBack: () => void }) {
@@ -111,8 +150,8 @@ export default function Detail({ onBack }: { onBack: () => void }) {
 
                     {/* Nav Items */}
                     <Flex gap="1">
-                        <NavItem icon={FaHome} label="Overview" />
-                        <NavItem icon={FaBox} label="Inventory" isActive />
+                        <NavItem icon={FaHome} label="Overview" isActive />
+                        <NavItem icon={FaBox} label="Inventory" />
                         <NavItem icon={FaChartLine} label="Production" />
                         <NavItem icon={FaClipboardList} label="Orders" />
                     </Flex>
@@ -491,254 +530,387 @@ export default function Detail({ onBack }: { onBack: () => void }) {
 
                     {/* Right Panel: Details */}
                     <Box gridColumn={{ base: 'span 12', lg: 'span 4' }} h="100%">
-                        <Card h="100%" overflow="auto" bg={useColorModeValue('white', 'gray.800')} borderColor={useColorModeValue('gray.200', 'gray.700')}>
-                            <Flex p="4" justify="space-between" align="center" borderBottom="1px" borderColor={useColorModeValue('gray.100', 'gray.700')}>
-                                <Heading size="sm" color={useColorModeValue('gray.900', 'white')}>Item Details</Heading>
-                                <Flex align="center" gap="1">
-                                    <IconButton aria-label="Edit Details" icon={<Icon as={FaEdit} />} size="xs" variant="ghost" color="gray.500" onClick={() => setIsDocumentModalOpen(true)} />
-                                    <IconButton aria-label="Export PDF" icon={<Icon as={FaDownload} />} size="xs" variant="ghost" color="gray.500" />
-                                    <IconButton aria-label="Ship Now" icon={<Icon as={FaTruck} />} size="xs" variant="ghost" color="gray.500" />
-                                    <Box position="relative">
-                                        <IconButton aria-label="AI Diagnosis" icon={<Icon as={FaRobot} color="purple.500" boxSize="18px" />} size="xs" variant="ghost" onClick={onAiOpen} />
-                                        <Box position="absolute" top="1" right="1" display="flex" h="2" w="2">
-                                            <Box position="absolute" display="inline-flex" h="full" w="full" borderRadius="full" bg="purple.400" opacity="0.75" animation="ping 1s cubic-bezier(0, 0, 0.2, 1) infinite" />
-                                            <Box position="relative" display="inline-flex" borderRadius="full" h="2" w="2" bg="purple.500" />
+                        <Card h="100%" overflow="hidden" bg={useColorModeValue('white', 'gray.800')} borderColor={useColorModeValue('gray.200', 'gray.700')} display="flex" flexDirection="column">
+                            <Tabs display="flex" flexDirection="column" h="100%" defaultIndex={0} colorScheme="blue">
+                                <Flex borderBottom="1px" borderColor={useColorModeValue('gray.100', 'gray.700')} align="center" justify="space-between" px="4">
+                                    <TabList borderBottom="none">
+                                        <Tab fontSize="sm" fontWeight="semibold" _selected={{ color: 'blue.500', borderColor: 'blue.500', borderBottom: '2px solid' }} px="4" py="3">Order Info</Tab>
+                                        <Tab fontSize="sm" fontWeight="semibold" _selected={{ color: 'blue.500', borderColor: 'blue.500', borderBottom: '2px solid' }} px="4" py="3">Activity Stream</Tab>
+                                    </TabList>
+                                    <Flex align="center" gap="1">
+                                        <IconButton aria-label="Edit Details" icon={<Icon as={FaEdit} />} size="xs" variant="ghost" color="gray.500" onClick={() => setIsDocumentModalOpen(true)} />
+                                        <IconButton aria-label="Export PDF" icon={<Icon as={FaDownload} />} size="xs" variant="ghost" color="gray.500" />
+                                        <IconButton aria-label="Ship Now" icon={<Icon as={FaTruck} />} size="xs" variant="ghost" color="gray.500" />
+                                        <Box position="relative">
+                                            <IconButton aria-label="AI Diagnosis" icon={<Icon as={FaRobot} color="purple.500" boxSize="18px" />} size="xs" variant="ghost" onClick={onAiOpen} />
+                                            <Box position="absolute" top="1" right="1" display="flex" h="2" w="2">
+                                                <Box position="absolute" display="inline-flex" h="full" w="full" borderRadius="full" bg="purple.400" opacity="0.75" animation="ping 1s cubic-bezier(0, 0, 0.2, 1) infinite" />
+                                                <Box position="relative" display="inline-flex" borderRadius="full" h="2" w="2" bg="purple.500" />
+                                            </Box>
                                         </Box>
-                                    </Box>
-                                    <Box w="1px" h="16px" bg="gray.300" mx="1" />
-                                    <IconButton aria-label="More" icon={<Icon as={FaEllipsisH} />} size="xs" variant="ghost" color="gray.500" />
+                                        <Box w="1px" h="16px" bg="gray.300" mx="1" />
+                                        <IconButton aria-label="More" icon={<Icon as={FaEllipsisH} />} size="xs" variant="ghost" color="gray.500" />
+                                    </Flex>
                                 </Flex>
-                            </Flex>
-                            <CardBody>
-                                <VStack align="stretch" spacing="6">
 
-
-                                    {/* AI Side Panel Section */}
-                                    {(selectedItem as any).aiStatus && (
-                                        <Box>
-                                            <Flex
-                                                align="center"
-                                                justify="space-between"
-                                                mb="2"
-                                                cursor="pointer"
-                                                onClick={() => toggleSection('aiSuggestions')}
-                                                userSelect="none"
-                                            >
-                                                <Flex align="center" gap="2">
-                                                    <Icon as={FaRobot} color="purple.500" />
-                                                    <Text fontSize="xs" fontWeight="bold" color={textColorMain}>AI Suggestions</Text>
-                                                    <Box position="relative" display="flex" h="2" w="2">
-                                                        <Box position="absolute" display="inline-flex" h="full" w="full" borderRadius="full" bg="purple.400" opacity="0.75" animation="ping 1s cubic-bezier(0, 0, 0.2, 1) infinite" />
-                                                        <Box position="relative" display="inline-flex" borderRadius="full" h="2" w="2" bg="purple.500" />
-                                                    </Box>
-                                                </Flex>
-                                                <ChevronDownIcon color="gray.500" transform={sections.aiSuggestions ? "rotate(0deg)" : "rotate(-90deg)"} transition="transform 0.2s" />
-                                            </Flex>
-
-                                            <Collapse in={sections.aiSuggestions} animateOpacity>
-                                                {(selectedItem as any).aiStatus === 'info' ? (
-                                                    <Box bg={useColorModeValue('blue.50', 'whiteAlpha.100')} p="3" borderRadius="md" border="1px" borderColor={useColorModeValue('blue.100', 'whiteAlpha.200')}>
-                                                        <Text fontSize="xs" fontWeight="semibold" color={useColorModeValue('blue.700', 'blue.200')} mb="2">Optimization Opportunity</Text>
-                                                        <VStack spacing="2" align="stretch">
-                                                            <Flex p="2" bg={bgCard} borderWidth="1px" borderColor="gray.200" borderRadius="md" _hover={{ borderColor: 'blue.300' }} cursor="pointer" transition="all 0.2s">
-                                                                <Box mt="1" mr="2" w="3" h="3" borderRadius="full" border="1px" borderColor="gray.400" display="flex" alignItems="center" justifyContent="center">
-                                                                    <Box w="1.5" h="1.5" borderRadius="full" />
-                                                                </Box>
-                                                                <Box>
-                                                                    <Text fontSize="xs" fontWeight="medium">Standard (Current)</Text>
-                                                                    <Text fontSize="10px" color="gray.500">Listed Price</Text>
+                                <TabPanels flex="1" overflow="hidden">
+                                    {/* Order Info Panel */}
+                                    <TabPanel p="0" h="100%" overflowY="auto">
+                                        <CardBody>
+                                            <VStack align="stretch" spacing="6">
+                                                {/* AI Side Panel Section */}
+                                                {(selectedItem as any).aiStatus && (
+                                                    <Box>
+                                                        <Flex
+                                                            align="center"
+                                                            justify="space-between"
+                                                            mb="2"
+                                                            cursor="pointer"
+                                                            onClick={() => toggleSection('aiSuggestions')}
+                                                            userSelect="none"
+                                                        >
+                                                            <Flex align="center" gap="2">
+                                                                <Icon as={FaRobot} color="purple.500" />
+                                                                <Text fontSize="xs" fontWeight="bold" color={textColorMain}>AI Suggestions</Text>
+                                                                <Box position="relative" display="flex" h="2" w="2">
+                                                                    <Box position="absolute" display="inline-flex" h="full" w="full" borderRadius="full" bg="purple.400" opacity="0.75" animation="ping 1s cubic-bezier(0, 0, 0.2, 1) infinite" />
+                                                                    <Box position="relative" display="inline-flex" borderRadius="full" h="2" w="2" bg="purple.500" />
                                                                 </Box>
                                                             </Flex>
-                                                            <Flex p="2" bg={bgCard} borderWidth="1px" borderColor="gray.200" borderRadius="md" _hover={{ borderColor: 'green.300' }} cursor="pointer" transition="all 0.2s">
-                                                                <Box mt="1" mr="2" w="3" h="3" borderRadius="full" border="1px" borderColor="green.500" display="flex" alignItems="center" justifyContent="center">
-                                                                    <Box w="1.5" h="1.5" borderRadius="full" bg="green.500" />
-                                                                </Box>
-                                                                <Box>
-                                                                    <Text fontSize="xs" fontWeight="medium" color="green.600">Eco-Friendly Option</Text>
-                                                                    <Text fontSize="10px" color="gray.500">-15% Carbon Footprint</Text>
-                                                                </Box>
-                                                            </Flex>
-                                                            <Flex p="2" bg={bgCard} borderWidth="1px" borderColor="gray.200" borderRadius="md" _hover={{ borderColor: 'purple.300' }} cursor="pointer" transition="all 0.2s">
-                                                                <Box mt="1" mr="2" w="3" h="3" borderRadius="full" border="1px" borderColor="gray.400" />
-                                                                <Box>
-                                                                    <Text fontSize="xs" fontWeight="medium" color="purple.600">Premium Upgrade</Text>
-                                                                    <Text fontSize="10px" color="gray.500">+ High Durability Finish</Text>
-                                                                </Box>
-                                                            </Flex>
-                                                        </VStack>
-                                                        <Button mt="3" w="full" size="xs" colorScheme="blue">Apply Selection</Button>
-                                                    </Box>
-                                                ) : (
-                                                    /* Data Fix / Warning */
-                                                    <Box bg={useColorModeValue('orange.50', 'whiteAlpha.100')} p="3" borderRadius="md" border="1px" borderColor={useColorModeValue('orange.100', 'whiteAlpha.200')}>
-                                                        <Flex gap="2">
-                                                            <WarningIcon color="orange.500" mt="1" />
-                                                            <Box width="100%">
-                                                                <Text fontSize="xs" fontWeight="semibold" color={useColorModeValue('orange.800', 'orange.200')}>Database Discrepancy</Text>
-                                                                <Text fontSize="10px" color={useColorModeValue('orange.600', 'orange.300')} mt="1">Local stock count differs from remote warehouse log.</Text>
-
-                                                                <Flex align="center" justify="space-between" mt="2" mb="3" px="2">
-                                                                    <Box textAlign="center">
-                                                                        <Text fontSize="10px" color="gray.500" textTransform="uppercase">Local</Text>
-                                                                        <Text fontSize="sm" fontWeight="bold">{selectedItem.stock}</Text>
-                                                                    </Box>
-                                                                    <Icon as={RepeatIcon} color="gray.400" />
-                                                                    <Box textAlign="center">
-                                                                        <Text fontSize="10px" color="gray.500" textTransform="uppercase">Remote</Text>
-                                                                        <Text fontSize="sm" fontWeight="bold" color="orange.500">{(selectedItem.stock || 0) + 5}</Text>
-                                                                    </Box>
-                                                                </Flex>
-
-                                                                <Button w="full" size="xs" colorScheme="orange">Sync & Fix</Button>
-                                                                {!isManualFixMode && (
-                                                                    <Button
-                                                                        size="xs"
-                                                                        variant="link"
-                                                                        colorScheme="orange"
-                                                                        textDecoration="underline"
-                                                                        w="full"
-                                                                        mt="1"
-                                                                        onClick={() => setIsManualFixMode(true)}
-                                                                    >
-                                                                        Resolve Manually
-                                                                    </Button>
-                                                                )}
-                                                            </Box>
+                                                            <ChevronDownIcon color="gray.500" transform={sections.aiSuggestions ? "rotate(0deg)" : "rotate(-90deg)"} transition="transform 0.2s" />
                                                         </Flex>
-                                                        {isManualFixMode && (
-                                                            <Box mt="3">
-                                                                <RadioGroup onChange={(val: any) => setResolutionMethod(val)} value={resolutionMethod}>
-                                                                    <Stack direction="column" spacing="2">
-                                                                        <Box p="2" borderWidth="1px" borderRadius="md" borderColor={resolutionMethod === 'local' ? 'orange.500' : 'inherit'} bg={resolutionMethod === 'local' ? useColorModeValue('white', 'whiteAlpha.100') : 'transparent'}>
-                                                                            <Radio value="local" colorScheme="orange" size="sm">
-                                                                                <Box ml="1">
-                                                                                    <Text fontSize="xs" fontWeight="bold">Keep Local Value</Text>
-                                                                                    <Text fontSize="10px" color="gray.500">{selectedItem.stock} items</Text>
+
+                                                        <Collapse in={sections.aiSuggestions} animateOpacity>
+                                                            {(selectedItem as any).aiStatus === 'info' ? (
+                                                                <Box bg={useColorModeValue('blue.50', 'whiteAlpha.100')} p="3" borderRadius="md" border="1px" borderColor={useColorModeValue('blue.100', 'whiteAlpha.200')}>
+                                                                    <Text fontSize="xs" fontWeight="semibold" color={useColorModeValue('blue.700', 'blue.200')} mb="2">Optimization Opportunity</Text>
+                                                                    <VStack spacing="2" align="stretch">
+                                                                        <Flex p="2" bg={bgCard} borderWidth="1px" borderColor="gray.200" borderRadius="md" _hover={{ borderColor: 'blue.300' }} cursor="pointer" transition="all 0.2s">
+                                                                            <Box mt="1" mr="2" w="3" h="3" borderRadius="full" border="1px" borderColor="gray.400" display="flex" alignItems="center" justifyContent="center">
+                                                                                <Box w="1.5" h="1.5" borderRadius="full" />
+                                                                            </Box>
+                                                                            <Box>
+                                                                                <Text fontSize="xs" fontWeight="medium">Standard (Current)</Text>
+                                                                                <Text fontSize="10px" color="gray.500">Listed Price</Text>
+                                                                            </Box>
+                                                                        </Flex>
+                                                                        <Flex p="2" bg={bgCard} borderWidth="1px" borderColor="gray.200" borderRadius="md" _hover={{ borderColor: 'green.300' }} cursor="pointer" transition="all 0.2s">
+                                                                            <Box mt="1" mr="2" w="3" h="3" borderRadius="full" border="1px" borderColor="green.500" display="flex" alignItems="center" justifyContent="center">
+                                                                                <Box w="1.5" h="1.5" borderRadius="full" bg="green.500" />
+                                                                            </Box>
+                                                                            <Box>
+                                                                                <Text fontSize="xs" fontWeight="medium" color="green.600">Eco-Friendly Option</Text>
+                                                                                <Text fontSize="10px" color="gray.500">-15% Carbon Footprint</Text>
+                                                                            </Box>
+                                                                        </Flex>
+                                                                        <Flex p="2" bg={bgCard} borderWidth="1px" borderColor="gray.200" borderRadius="md" _hover={{ borderColor: 'purple.300' }} cursor="pointer" transition="all 0.2s">
+                                                                            <Box mt="1" mr="2" w="3" h="3" borderRadius="full" border="1px" borderColor="gray.400" />
+                                                                            <Box>
+                                                                                <Text fontSize="xs" fontWeight="medium" color="purple.600">Premium Upgrade</Text>
+                                                                                <Text fontSize="10px" color="gray.500">+ High Durability Finish</Text>
+                                                                            </Box>
+                                                                        </Flex>
+                                                                    </VStack>
+                                                                    <Button mt="3" w="full" size="xs" colorScheme="blue">Apply Selection</Button>
+                                                                </Box>
+                                                            ) : (
+                                                                /* Data Fix / Warning */
+                                                                <Box bg={useColorModeValue('orange.50', 'whiteAlpha.100')} p="3" borderRadius="md" border="1px" borderColor={useColorModeValue('orange.100', 'whiteAlpha.200')}>
+                                                                    <Flex gap="2">
+                                                                        <WarningIcon color="orange.500" mt="1" />
+                                                                        <Box width="100%">
+                                                                            <Text fontSize="xs" fontWeight="semibold" color={useColorModeValue('orange.800', 'orange.200')}>Database Discrepancy</Text>
+                                                                            <Text fontSize="10px" color={useColorModeValue('orange.600', 'orange.300')} mt="1">Local stock count differs from remote warehouse log.</Text>
+
+                                                                            <Flex align="center" justify="space-between" mt="2" mb="3" px="2">
+                                                                                <Box textAlign="center">
+                                                                                    <Text fontSize="10px" color="gray.500" textTransform="uppercase">Local</Text>
+                                                                                    <Text fontSize="sm" fontWeight="bold">{selectedItem.stock}</Text>
                                                                                 </Box>
-                                                                            </Radio>
-                                                                        </Box>
-                                                                        <Box p="2" borderWidth="1px" borderRadius="md" borderColor={resolutionMethod === 'remote' ? 'orange.500' : 'inherit'} bg={resolutionMethod === 'remote' ? useColorModeValue('white', 'whiteAlpha.100') : 'transparent'}>
-                                                                            <Radio value="remote" colorScheme="orange" size="sm">
-                                                                                <Box ml="1">
-                                                                                    <Text fontSize="xs" fontWeight="bold">Accept Warehouse Value</Text>
-                                                                                    <Text fontSize="10px" color="gray.500">{(selectedItem.stock || 0) + 5} items</Text>
+                                                                                <Icon as={RepeatIcon} color="gray.400" />
+                                                                                <Box textAlign="center">
+                                                                                    <Text fontSize="10px" color="gray.500" textTransform="uppercase">Remote</Text>
+                                                                                    <Text fontSize="sm" fontWeight="bold" color="orange.500">{(selectedItem.stock || 0) + 5}</Text>
                                                                                 </Box>
-                                                                            </Radio>
-                                                                        </Box>
-                                                                        <Box p="2" borderWidth="1px" borderRadius="md" borderColor={resolutionMethod === 'custom' ? 'orange.500' : 'inherit'} bg={resolutionMethod === 'custom' ? useColorModeValue('white', 'whiteAlpha.100') : 'transparent'}>
-                                                                            <Radio value="custom" colorScheme="orange" size="sm">
-                                                                                <Text ml="1" fontSize="xs" fontWeight="bold">Custom Value</Text>
-                                                                            </Radio>
-                                                                            {resolutionMethod === 'custom' && (
-                                                                                <Input
+                                                                            </Flex>
+
+                                                                            <Button w="full" size="xs" colorScheme="orange">Sync & Fix</Button>
+                                                                            {!isManualFixMode && (
+                                                                                <Button
                                                                                     size="xs"
-                                                                                    mt="2"
-                                                                                    placeholder="#"
-                                                                                    bg={useColorModeValue('white', 'gray.800')}
-                                                                                    value={customValue}
-                                                                                    onChange={(e) => setCustomValue(e.target.value)}
-                                                                                />
+                                                                                    variant="link"
+                                                                                    colorScheme="orange"
+                                                                                    textDecoration="underline"
+                                                                                    w="full"
+                                                                                    mt="1"
+                                                                                    onClick={() => setIsManualFixMode(true)}
+                                                                                >
+                                                                                    Resolve Manually
+                                                                                </Button>
                                                                             )}
                                                                         </Box>
-                                                                    </Stack>
-                                                                </RadioGroup>
+                                                                    </Flex>
+                                                                    {isManualFixMode && (
+                                                                        <Box mt="3">
+                                                                            <RadioGroup onChange={(val: any) => setResolutionMethod(val)} value={resolutionMethod}>
+                                                                                <Stack direction="column" spacing="2">
+                                                                                    <Box p="2" borderWidth="1px" borderRadius="md" borderColor={resolutionMethod === 'local' ? 'orange.500' : 'inherit'} bg={resolutionMethod === 'local' ? useColorModeValue('white', 'whiteAlpha.100') : 'transparent'}>
+                                                                                        <Radio value="local" colorScheme="orange" size="sm">
+                                                                                            <Box ml="1">
+                                                                                                <Text fontSize="xs" fontWeight="bold">Keep Local Value</Text>
+                                                                                                <Text fontSize="10px" color="gray.500">{selectedItem.stock} items</Text>
+                                                                                            </Box>
+                                                                                        </Radio>
+                                                                                    </Box>
+                                                                                    <Box p="2" borderWidth="1px" borderRadius="md" borderColor={resolutionMethod === 'remote' ? 'orange.500' : 'inherit'} bg={resolutionMethod === 'remote' ? useColorModeValue('white', 'whiteAlpha.100') : 'transparent'}>
+                                                                                        <Radio value="remote" colorScheme="orange" size="sm">
+                                                                                            <Box ml="1">
+                                                                                                <Text fontSize="xs" fontWeight="bold">Accept Warehouse Value</Text>
+                                                                                                <Text fontSize="10px" color="gray.500">{(selectedItem.stock || 0) + 5} items</Text>
+                                                                                            </Box>
+                                                                                        </Radio>
+                                                                                    </Box>
+                                                                                    <Box p="2" borderWidth="1px" borderRadius="md" borderColor={resolutionMethod === 'custom' ? 'orange.500' : 'inherit'} bg={resolutionMethod === 'custom' ? useColorModeValue('white', 'whiteAlpha.100') : 'transparent'}>
+                                                                                        <Radio value="custom" colorScheme="orange" size="sm">
+                                                                                            <Text ml="1" fontSize="xs" fontWeight="bold">Custom Value</Text>
+                                                                                        </Radio>
+                                                                                        {resolutionMethod === 'custom' && (
+                                                                                            <Input
+                                                                                                size="xs"
+                                                                                                mt="2"
+                                                                                                placeholder="#"
+                                                                                                bg={useColorModeValue('white', 'gray.800')}
+                                                                                                value={customValue}
+                                                                                                onChange={(e) => setCustomValue(e.target.value)}
+                                                                                            />
+                                                                                        )}
+                                                                                    </Box>
+                                                                                </Stack>
+                                                                            </RadioGroup>
 
-                                                                <Flex gap="2" mt="3">
-                                                                    <Button size="xs" flex="1" variant="ghost" onClick={() => setIsManualFixMode(false)}>Cancel</Button>
-                                                                    <Button
-                                                                        size="xs"
-                                                                        flex="1"
-                                                                        colorScheme="orange"
-                                                                        onClick={() => {
-                                                                            alert(`Fixed with: ${resolutionMethod === 'custom' ? customValue : (resolutionMethod === 'remote' ? (selectedItem.stock + 5) : selectedItem.stock)}`)
-                                                                            setIsManualFixMode(false)
-                                                                        }}
-                                                                    >
-                                                                        Confirm Fix
-                                                                    </Button>
-                                                                </Flex>
-                                                            </Box>
-                                                        )}
+                                                                            <Flex gap="2" mt="3">
+                                                                                <Button size="xs" flex="1" variant="ghost" onClick={() => setIsManualFixMode(false)}>Cancel</Button>
+                                                                                <Button
+                                                                                    size="xs"
+                                                                                    flex="1"
+                                                                                    colorScheme="orange"
+                                                                                    onClick={() => {
+                                                                                        alert(`Fixed with: ${resolutionMethod === 'custom' ? customValue : (resolutionMethod === 'remote' ? (selectedItem.stock + 5) : selectedItem.stock)}`)
+                                                                                        setIsManualFixMode(false)
+                                                                                    }}
+                                                                                >
+                                                                                    Confirm Fix
+                                                                                </Button>
+                                                                            </Flex>
+                                                                        </Box>
+                                                                    )}
+                                                                </Box>
+                                                            )}
+                                                        </Collapse>
                                                     </Box>
                                                 )}
-                                            </Collapse>
-                                        </Box>
-                                    )}
 
-                                    {/* Product Overview */}
-                                    <Box>
-                                        <Flex
-                                            justify="space-between"
-                                            mb="2"
-                                            cursor="pointer"
-                                            onClick={() => toggleSection('productOverview')}
-                                            align="center"
-                                        >
-                                            <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('gray.900', 'white')}>Product Overview</Text>
-                                            <ChevronDownIcon color="gray.500" transform={sections.productOverview ? "rotate(0deg)" : "rotate(-90deg)"} transition="transform 0.2s" />
-                                        </Flex>
-                                        <Collapse in={sections.productOverview} animateOpacity>
-                                            <Flex bg={useColorModeValue('gray.200', 'gray.700')} borderRadius="md" h="32" align="center" justify="center" mb="4">
-                                                <Icon as={AttachmentIcon} boxSize="8" color={useColorModeValue('white', 'gray.500')} />
-                                            </Flex>
-                                            <Heading size="md" color={useColorModeValue('gray.900', 'white')}>{selectedItem.name}</Heading>
-                                            <Text fontSize="xs" color="gray.500" mb="2">{selectedItem.id}</Text>
-                                            <Flex gap="2">
-                                                <Tag colorScheme={selectedItem.colorScheme} borderRadius="none">{selectedItem.status}</Tag>
-                                                <Tag variant="outline" colorScheme="gray" borderRadius="none" color={useColorModeValue('gray.600', 'gray.400')}>Premium</Tag>
-                                            </Flex>
-                                        </Collapse>
-                                    </Box>
-
-                                    <Divider borderColor={useColorModeValue('gray.200', 'gray.700')} />
-
-                                    {/* Lifecycle */}
-                                    <Box>
-                                        <Flex
-                                            justify="space-between"
-                                            mb="2"
-                                            cursor="pointer"
-                                            onClick={() => toggleSection('lifecycle')}
-                                            align="center"
-                                        >
-                                            <Text fontSize="sm" fontWeight="medium">Lifecycle Status</Text>
-                                            <ChevronDownIcon transform={sections.lifecycle ? "rotate(0deg)" : "rotate(-90deg)"} transition="transform 0.2s" />
-                                        </Flex>
-                                        <Collapse in={sections.lifecycle} animateOpacity>
-                                            <Box pl="4" borderLeft="1px" borderColor="gray.200" ml="2">
-                                                {['Material Sourced', 'Manufacturing', 'Quality Control'].map((step, i) => (
-                                                    <Box key={i} position="relative" pb="6">
-                                                        <Box position="absolute" left="-19px" top="0" w="4" h="4" borderRadius="full" bg={lifecycleIconBg} display="flex" alignItems="center" justifyContent="center">
-                                                            <Icon as={CheckCircleIcon} color={lifecycleIconColor} w="3" h="3" />
-                                                        </Box>
-                                                        <Text fontSize="sm" fontWeight="medium" lineHeight="1">{step}</Text>
-                                                        <Text fontSize="xs" color="gray.500" mt="1">Completed Jan {5 + i * 5}, 2025</Text>
-                                                    </Box>
-                                                ))}
-                                                <Box position="relative" pb="6">
-                                                    <Box position="absolute" left="-19px" top="0" w="4" h="4" borderRadius="full" bg={bgCard} border="4px solid" borderColor={lifecycleBorderColor} />
-                                                    <Text fontSize="sm" fontWeight="medium" lineHeight="1">Warehouse Storage</Text>
-                                                    <Text fontSize="xs" color="gray.500" mt="1">In Progress</Text>
+                                                {/* Product Overview */}
+                                                <Box>
+                                                    <Flex
+                                                        justify="space-between"
+                                                        mb="2"
+                                                        cursor="pointer"
+                                                        onClick={() => toggleSection('productOverview')}
+                                                        align="center"
+                                                    >
+                                                        <Text fontSize="sm" fontWeight="medium" color={useColorModeValue('gray.900', 'white')}>Product Overview</Text>
+                                                        <ChevronDownIcon color="gray.500" transform={sections.productOverview ? "rotate(0deg)" : "rotate(-90deg)"} transition="transform 0.2s" />
+                                                    </Flex>
+                                                    <Collapse in={sections.productOverview} animateOpacity>
+                                                        <Flex bg={useColorModeValue('gray.200', 'gray.700')} borderRadius="md" h="32" align="center" justify="center" mb="4">
+                                                            <Icon as={AttachmentIcon} boxSize="8" color={useColorModeValue('white', 'gray.500')} />
+                                                        </Flex>
+                                                        <Heading size="md" color={useColorModeValue('gray.900', 'white')}>{selectedItem.name}</Heading>
+                                                        <Text fontSize="xs" color="gray.500" mb="2">{selectedItem.id}</Text>
+                                                        <Flex gap="2">
+                                                            <Tag colorScheme={selectedItem.colorScheme} borderRadius="none">{selectedItem.status}</Tag>
+                                                            <Tag variant="outline" colorScheme="gray" borderRadius="none" color={useColorModeValue('gray.600', 'gray.400')}>Premium</Tag>
+                                                        </Flex>
+                                                    </Collapse>
                                                 </Box>
-                                            </Box>
-                                        </Collapse>
-                                    </Box>
 
-                                    {/* Action Required */}
-                                    <Box>
-                                        <Flex justify="space-between" mb="2" align="center">
-                                            <Text fontSize="sm" fontWeight="medium">Action Required</Text>
-                                        </Flex>
-                                        <Box pl="4" borderLeft="1px" borderColor="gray.200" ml="2">
-                                            <VStack spacing="3" align="stretch">
-                                                <Button size="sm" bg={poButtonBg} color={poButtonColor} _hover={{ bg: poButtonHover }} onClick={() => setIsPOModalOpen(true)}>Create Purchase Order</Button>
-                                                <Button size="sm" variant="outline" borderColor={borderColor} color={textColorMuted}>Send Acknowledgment</Button>
+                                                <Divider borderColor={useColorModeValue('gray.200', 'gray.700')} />
+
+                                                {/* Lifecycle */}
+                                                <Box>
+                                                    <Flex
+                                                        justify="space-between"
+                                                        mb="2"
+                                                        cursor="pointer"
+                                                        onClick={() => toggleSection('lifecycle')}
+                                                        align="center"
+                                                    >
+                                                        <Text fontSize="sm" fontWeight="medium">Lifecycle Status</Text>
+                                                        <ChevronDownIcon transform={sections.lifecycle ? "rotate(0deg)" : "rotate(-90deg)"} transition="transform 0.2s" />
+                                                    </Flex>
+                                                    <Collapse in={sections.lifecycle} animateOpacity>
+                                                        <Box pl="4" borderLeft="1px" borderColor="gray.200" ml="2">
+                                                            {['Material Sourced', 'Manufacturing', 'Quality Control'].map((step, i) => (
+                                                                <Box key={i} position="relative" pb="6">
+                                                                    <Box position="absolute" left="-19px" top="0" w="4" h="4" borderRadius="full" bg={lifecycleIconBg} display="flex" alignItems="center" justifyContent="center">
+                                                                        <Icon as={CheckCircleIcon} color={lifecycleIconColor} w="3" h="3" />
+                                                                    </Box>
+                                                                    <Text fontSize="sm" fontWeight="medium" lineHeight="1">{step}</Text>
+                                                                    <Text fontSize="xs" color="gray.500" mt="1">Completed Jan {5 + i * 5}, 2025</Text>
+                                                                </Box>
+                                                            ))}
+                                                            <Box position="relative" pb="6">
+                                                                <Box position="absolute" left="-19px" top="0" w="4" h="4" borderRadius="full" bg={bgCard} border="4px solid" borderColor={lifecycleBorderColor} />
+                                                                <Text fontSize="sm" fontWeight="medium" lineHeight="1">Warehouse Storage</Text>
+                                                                <Text fontSize="xs" color="gray.500" mt="1">In Progress</Text>
+                                                            </Box>
+                                                        </Box>
+                                                    </Collapse>
+                                                </Box>
+
+                                                {/* Action Required */}
+                                                <Box>
+                                                    <Flex justify="space-between" mb="2" align="center">
+                                                        <Text fontSize="sm" fontWeight="medium">Action Required</Text>
+                                                    </Flex>
+                                                    <Box pl="4" borderLeft="1px" borderColor="gray.200" ml="2">
+                                                        <VStack spacing="3" align="stretch">
+                                                            <Button size="sm" bg={poButtonBg} color={poButtonColor} _hover={{ bg: poButtonHover }} onClick={() => setIsPOModalOpen(true)}>Create Purchase Order</Button>
+                                                            <Button size="sm" variant="outline" borderColor={borderColor} color={textColorMuted}>Send Acknowledgment</Button>
+                                                        </VStack>
+                                                    </Box>
+                                                </Box>
+
                                             </VStack>
-                                        </Box>
-                                    </Box>
+                                        </CardBody>
+                                    </TabPanel>
 
-                                </VStack>
-                            </CardBody>
+                                    {/* Activity Stream Panel */}
+                                    <TabPanel p="0" h="100%" overflow="hidden">
+                                        <Flex h="100%">
+                                            {/* Chat Area */}
+                                            <Flex direction="column" flex="1" borderRight="1px" borderColor={borderColor}>
+                                                <Box flex="1" overflowY="auto" p="4">
+                                                    <VStack spacing="4" align="stretch">
+                                                        <Flex justify="center"><Badge colorScheme="gray" variant="solid" borderRadius="full" px="3" fontSize="xs">Today, 9:23 AM</Badge></Flex>
+                                                        {messages.map((msg) => (
+                                                            <Flex key={msg.id} gap="3" direction={msg.type === 'user' ? 'row-reverse' : 'row'}>
+                                                                {msg.type !== 'user' && (
+                                                                    msg.type === 'system' ? (
+                                                                        <Flex align="center" justify="center" w="8" h="8" borderRadius="full" bg={useColorModeValue('gray.200', 'gray.600')}>
+                                                                            <Icon as={RepeatIcon} color="gray.500" />
+                                                                        </Flex>
+                                                                    ) : (
+                                                                        <Avatar
+                                                                            size="sm"
+                                                                            name={msg.sender}
+                                                                            src={msg.avatar === 'AI' ? undefined : msg.avatar}
+                                                                            bg={msg.type === 'ai' ? 'purple.100' : 'gray.200'}
+                                                                            color={msg.type === 'ai' ? 'purple.600' : 'gray.600'}
+                                                                            icon={msg.type === 'ai' ? <Icon as={FaRobot} /> : undefined}
+                                                                        />
+                                                                    )
+                                                                )}
+
+                                                                <Box maxW="85%">
+                                                                    {msg.type === 'system' ? (
+                                                                        <Text fontSize="sm" color="gray.500">
+                                                                            <Text as="span" fontWeight="bold">{msg.sender}</Text> {msg.content.replace('System ', '')}
+                                                                        </Text>
+                                                                    ) : (
+                                                                        <Box>
+                                                                            <Flex align="center" gap="2" mb="1" justify={msg.type === 'user' ? 'flex-end' : 'flex-start'}>
+                                                                                {msg.type !== 'user' && <Text fontSize="sm" fontWeight="bold" color={msg.type === 'ai' ? 'purple.500' : textColorMain}>{msg.sender}</Text>}
+                                                                                <Text fontSize="xs" color="gray.500">{msg.time}</Text>
+                                                                                {msg.type === 'user' && <Text fontSize="sm" fontWeight="bold" color={textColorMain}>{msg.sender}</Text>}
+                                                                            </Flex>
+                                                                            <Box
+                                                                                bg={msg.type === 'user' ? 'blue.500' : (msg.type === 'ai' ? useColorModeValue('purple.50', 'purple.900') : bgCard)}
+                                                                                color={msg.type === 'user' ? 'white' : textColorMain}
+                                                                                p="3"
+                                                                                borderRadius="lg"
+                                                                                borderWidth={msg.type === 'user' ? 0 : '1px'}
+                                                                                borderColor={msg.type === 'ai' ? 'purple.200' : borderColor}
+                                                                                boxShadow="sm"
+                                                                            >
+                                                                                <Text fontSize="sm">{msg.content}</Text>
+                                                                                {msg.type === 'ai' && (
+                                                                                    <HStack mt="3" spacing="2">
+                                                                                        <Button size="xs" colorScheme="purple">Create Task</Button>
+                                                                                        <Button size="xs" variant="ghost" colorScheme="purple">Dismiss</Button>
+                                                                                    </HStack>
+                                                                                )}
+                                                                            </Box>
+                                                                        </Box>
+                                                                    )}
+                                                                </Box>
+
+                                                                {msg.type === 'user' && (
+                                                                    <Avatar size="sm" name={msg.sender} src={msg.avatar} bg="blue.100" color="blue.600" />
+                                                                )}
+                                                            </Flex>
+                                                        ))}
+                                                    </VStack>
+                                                </Box>
+
+                                                {/* Input Area */}
+                                                <Box p="4" bg={bgCard} borderTop="1px" borderColor={borderColor}>
+                                                    <HStack>
+                                                        <IconButton size="sm" aria-label="Attach" icon={<AttachmentIcon />} variant="ghost" color="gray.500" />
+                                                        <Input placeholder="Type a message..." size="sm" borderRadius="full" bg={useColorModeValue('gray.50', 'gray.700')} border="none" />
+                                                        <IconButton size="sm" aria-label="Send" icon={<Icon as={FaPaperPlane} />} colorScheme="blue" borderRadius="full" />
+                                                    </HStack>
+                                                </Box>
+                                            </Flex>
+
+                                            {/* Sidebar */}
+                                            <Box w="72" display={{ base: 'none', '2xl': 'block' }} bg={bgMain} borderLeft="1px" borderColor={borderColor}>
+                                                <VStack align="stretch" spacing="0" h="100%">
+                                                    <Box p="4" borderBottom="1px" borderColor={borderColor}>
+                                                        <Heading size="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">Collaborators</Heading>
+                                                    </Box>
+                                                    <VStack align="stretch" spacing="3" p="4" flex="1" overflowY="auto">
+                                                        {collaborators.map((c, i) => (
+                                                            <HStack key={i}>
+                                                                <Box position="relative">
+                                                                    <Avatar size="xs" name={c.name} src={c.avatar === 'AI' ? undefined : c.avatar} icon={c.avatar === 'AI' ? <Icon as={FaRobot} /> : undefined} bg={c.avatar === 'AI' ? 'purple.100' : undefined} color={c.avatar === 'AI' ? 'purple.600' : undefined} />
+                                                                    <Box position="absolute" bottom="0" right="0" w="2" h="2" borderRadius="full" bg={c.status === 'online' ? 'green.400' : 'gray.400'} border="2px solid white" />
+                                                                </Box>
+                                                                <Box flex="1" minW="0">
+                                                                    <Text fontSize="sm" fontWeight="medium" noOfLines={1} color={textColorMain}>{c.name}</Text>
+                                                                    <Text fontSize="xs" color="gray.500">{c.role}</Text>
+                                                                </Box>
+                                                            </HStack>
+                                                        ))}
+                                                        <Button size="xs" variant="ghost" justifyContent="flex-start" leftIcon={<AddIcon />} color="gray.500">Invite New</Button>
+                                                    </VStack>
+
+                                                    <Divider />
+
+                                                    <Box p="4" borderBottom="1px" borderColor={borderColor}>
+                                                        <Heading size="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">Shared Docs</Heading>
+                                                    </Box>
+                                                    <VStack align="stretch" spacing="2" p="4">
+                                                        {documents.map((doc, i) => (
+                                                            <HStack key={i} p="2" borderRadius="md" _hover={{ bg: useColorModeValue('gray.100', 'whiteAlpha.100') }} cursor="pointer">
+                                                                <Flex w="8" h="8" bg={useColorModeValue('blue.50', 'blue.900')} color="blue.500" align="center" justify="center" borderRadius="md">
+                                                                    <Icon as={FaClipboardList} boxSize="3" />
+                                                                </Flex>
+                                                                <Box flex="1" minW="0">
+                                                                    <Text fontSize="xs" fontWeight="medium" noOfLines={1} color={textColorMain}>{doc.name}</Text>
+                                                                    <Text fontSize="10px" color="gray.500">{doc.size} • {doc.uploaded}</Text>
+                                                                </Box>
+                                                            </HStack>
+                                                        ))}
+                                                        <Button size="xs" variant="outline" borderStyle="dashed" w="full" leftIcon={<DownloadIcon />}>Upload File</Button>
+                                                    </VStack>
+                                                </VStack>
+                                            </Box>
+                                        </Flex>
+                                    </TabPanel>
+                                </TabPanels>
+                            </Tabs>
                         </Card>
                     </Box>
                 </Grid>

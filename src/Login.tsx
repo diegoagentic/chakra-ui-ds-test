@@ -162,9 +162,9 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
                                         fontWeight="medium"
                                         _hover={{ bg: 'whiteAlpha.100' }}
                                         onClick={handleAction}
-                                        leftIcon={<Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" boxSize={5} filter="brightness(0.9) contrast(1.2)" />}
+                                        leftIcon={<Icon viewBox="0 0 21 21" boxSize={5}><path fill="#f25022" d="M1 1h9v9H1z" /><path fill="#7fba00" d="M11 1h9v9h-9z" /><path fill="#00a4ef" d="M1 11h9v9H1z" /><path fill="#ffb900" d="M11 11h9v9h-9z" /></Icon>}
                                     >
-                                        Login with Google
+                                        Login with Microsoft
                                     </Button>
 
                                     <Flex align="center">
