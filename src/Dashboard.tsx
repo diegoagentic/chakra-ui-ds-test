@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/icons'
 import { FaHome, FaExclamationTriangle, FaBox, FaIndustry, FaClipboardList, FaTruck, FaTh, FaList, FaSignOutAlt, FaUser, FaMapMarkerAlt, FaCheckCircle, FaClock, FaChartLine, FaCalendar, FaFilePdf } from 'react-icons/fa'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts'
+import Navbar from './components/Navbar'
 
 const inventoryData = [
     { name: 'Seating', value: 78, amt: 480 },
@@ -171,143 +172,8 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
     return (
         <Box minH="100vh" bg={bgMain} fontFamily="body">
             {/* Floating Capsule Navbar */}
-            <Box
-                position="fixed"
-                top="24px"
-                left="50%"
-                transform="translateX(-50%)"
-                zIndex={100}
-                w="auto"
-                p="2"
-                borderRadius="full"
-                bg={useColorModeValue('rgba(255, 255, 255, 0.7)', 'rgba(23, 25, 35, 0.7)')}
-                backdropFilter="blur(24px)"
-                border="1px solid"
-                borderColor={navBorder}
-                boxShadow={navShadow}
-            >
-                <Flex align="center" gap="2">
-                    {/* Logo */}
-                    <Box px="4">
-                        <Image
-                            src={useColorModeValue('/logo-on-light.jpg', '/logo-on-dark.jpg')}
-                            h="20px"
-                            alt="Strata"
-                        />
-                    </Box>
-                    <Box w="1px" h="24px" bg={useColorModeValue('gray.300', 'whiteAlpha.300')} mx="1" />
-
-                    {/* Nav Items */}
-                    <Flex gap="1">
-                        <NavItem icon={FaHome} label="Overview" isActive />
-                        <NavItem icon={FaBox} label="Inventory" />
-                        <NavItem icon={FaChartLine} label="Production" />
-                        <NavItem icon={FaClipboardList} label="Orders" />
-                    </Flex>
-
-                    <Box w="1px" h="24px" bg={useColorModeValue('gray.300', 'whiteAlpha.300')} mx="1" />
-
-                    {/* Actions */}
-                    <Flex align="center" gap="2" pr="2" position="relative">
-                        <IconButton
-                            aria-label="Apps"
-                            icon={<FaTh />}
-                            variant="ghost"
-                            rounded="full"
-                            size="sm"
-                            color="gray.500"
-                            _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}
-                            onClick={() => setIsAppsOpen(!isAppsOpen)}
-                        />
-
-                        {isAppsOpen && (
-                            <Portal>
-                                <Box
-                                    position="fixed"
-                                    inset="0"
-                                    bg="transparent"
-                                    zIndex={99}
-                                    onClick={() => setIsAppsOpen(false)}
-                                />
-                                <Box
-                                    bg={useColorModeValue('rgba(255, 255, 255, 0.85)', 'rgba(23, 25, 35, 0.85)')}
-                                    backdropFilter="blur(16px)"
-                                    border="1px solid"
-                                    borderColor={useColorModeValue('blackAlpha.200', 'whiteAlpha.200')}
-                                    w="400px"
-                                    borderRadius="2xl"
-                                    boxShadow="2xl"
-                                    p="6"
-                                    position="fixed"
-                                    top="90px"
-                                    left="50%"
-                                    transform="translateX(-50%)" /* Chakra transform is reliable in Box */
-                                    zIndex={100}
-                                    transition="all 0.2s"
-                                >
-                                    <SimpleGrid columns={3} spacing="6">
-                                        {[
-                                            { icon: FaHome, label: "Portal", color: "blue.500", bg: "blue.50", darkBg: "blue.900" },
-                                            { icon: FaUser, label: "CRM", color: "purple.500", bg: "purple.50", darkBg: "purple.900" },
-                                            { icon: FaClipboardList, label: "Invoice", color: "green.500", bg: "green.50", darkBg: "green.900" },
-                                            { icon: FaBox, label: "Inventory", color: "orange.500", bg: "orange.50", darkBg: "orange.900" },
-                                            { icon: FaChartLine, label: "Analytics", color: "pink.500", bg: "pink.50", darkBg: "pink.900" },
-                                            { icon: FaCheckCircle, label: "Support", color: "cyan.500", bg: "cyan.50", darkBg: "cyan.900" },
-                                            { icon: FaTh, label: "Board", color: "indigo.500", bg: "indigo.50", darkBg: "indigo.900" },
-                                            { icon: FaCalendar, label: "Calendar", color: "red.500", bg: "red.50", darkBg: "red.900" },
-                                            { icon: FaList, label: "More", color: "gray.500", bg: "gray.100", darkBg: "gray.700" },
-                                        ].map((app, i) => (
-                                            <VStack
-                                                key={i}
-                                                cursor="pointer"
-                                                role="group"
-                                                transition="all 0.2s"
-                                                _hover={{ transform: 'scale(1.05)' }}
-                                            >
-                                                <Flex
-                                                    w="12" h="12"
-                                                    align="center" justify="center"
-                                                    rounded="xl"
-                                                    bg={useColorModeValue(app.bg, app.darkBg)}
-                                                    color={app.color}
-                                                    boxShadow="sm"
-                                                    mb="1"
-                                                >
-                                                    <Box as={app.icon} boxSize="5" />
-                                                </Flex>
-                                                <Text fontSize="xs" fontWeight="medium" color={textColorSecondary} _groupHover={{ color: textColorMain }}>{app.label}</Text>
-                                            </VStack>
-                                        ))}
-                                    </SimpleGrid>
-                                </Box>
-                            </Portal>
-                        )}
-                        <IconButton
-                            aria-label="Toggle Theme"
-                            icon={<ThemeIcon />}
-                            onClick={toggleColorMode}
-                            variant="ghost"
-                            rounded="full"
-                            size="sm"
-                            color="gray.500"
-                            _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}
-                        />
-                        <Menu>
-                            <MenuButton as={Button} rounded="full" w="32px" h="32px" minW="32px" p="0" variant="ghost" _hover={{ bg: useColorModeValue('blackAlpha.100', 'whiteAlpha.100') }}>
-                                <Avatar size="xs" name="Jhon Doe" bgGradient="linear(to-r, blue.400, purple.500)" color="white" fontWeight="bold" />
-                            </MenuButton>
-                            <MenuList bg={useColorModeValue('whiteAlpha.900', 'blackAlpha.900')} backdropFilter="blur(10px)" borderColor={borderColor} shadow="lg" p="2" borderRadius="xl">
-                                <Box px="3" py="2">
-                                    <Text fontSize="sm" fontWeight="bold" color={textColorMain}>Jhon Doe</Text>
-                                    <Text fontSize="xs" color="gray.500">Admin</Text>
-                                </Box>
-                                <MenuDivider />
-                                <MenuItem icon={<FaSignOutAlt />} onClick={onLogout} color="red.500" borderRadius="md">Sign Out</MenuItem>
-                            </MenuList>
-                        </Menu>
-                    </Flex>
-                </Flex>
-            </Box>
+            {/* Floating Capsule Navbar */}
+            <Navbar onLogout={onLogout} activeTab="Overview" />
 
 
             {/* Main Content */}
@@ -455,7 +321,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                         </Card>
                     </SimpleGrid>
 
-                    <Flex align="center" gap="4" mt="6" mb="6" animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                    <Flex align="center" gap="4" mt="6" mb="6">
                         <Text fontSize="sm" fontWeight="medium" color={textColorMuted}>Quick Actions:</Text>
                         {[
                             { icon: <AddIcon boxSize={3} />, label: "New Order" },
@@ -729,7 +595,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                             </Td>
                                                             <Td>
                                                                 <Flex align="center" gap="2">
-                                                                    <Avatar size="xs" name={order.avatar} bg="gray.200" color="gray.600" />
+                                                                    <Avatar size="xs" name={order.initials} bg="gray.200" color="gray.600" />
                                                                     <Text fontSize="sm" fontWeight="medium">{order.customer}</Text>
                                                                 </Flex>
                                                             </Td>
@@ -829,7 +695,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
                                                 <CardBody p="5">
                                                     <Flex justify="space-between" mb="4">
                                                         <Flex align="center" gap="3">
-                                                            <Avatar size="sm" name={order.avatar} bgGradient="linear(to-br, blue.400, purple.500)" color="white" fontWeight="bold" />
+                                                            <Avatar size="sm" name={order.initials} bgGradient="linear(to-br, blue.400, purple.500)" color="white" fontWeight="bold" />
                                                             <Box>
                                                                 <Text fontWeight="bold" fontSize="sm">{order.customer}</Text>
                                                                 <Text fontSize="xs" color="gray.500">{order.id}</Text>
@@ -1055,9 +921,6 @@ function NavItem({ icon, label, isActive }: { icon: any, label: string, isActive
             bg={isActive ? activeBg : 'transparent'}
             color={isActive ? activeColor : 'gray.500'}
             _hover={{ bg: hoverBg, '.nav-label': { maxW: '200px', opacity: 1, ml: 2 } }}
-            gap="2"
-            sx={{ gap: '0.5rem' }}
-            _hover={{ bg: hoverBg, '.nav-label': { maxW: '100px', opacity: 1 } }}
             display="flex"
             alignItems="center"
             overflow="hidden"
