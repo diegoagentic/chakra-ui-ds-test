@@ -54,6 +54,30 @@ const messages = [
         content: "@InventoryManager I'm verifying the physical stock in Zone B. Will update shortly.",
         time: "1 hour ago",
         type: "user",
+    },
+    {
+        id: 4,
+        sender: "Sarah Chen",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+        content: "I've contacted the client. They want to proceed with the available items. I've updated the order line items accordingly.",
+        time: "15 mins ago",
+        type: "user",
+    },
+    {
+        id: 5,
+        sender: "System",
+        avatar: "",
+        content: "Sarah Chen triggered context action: Process Quote",
+        time: "Just now",
+        type: "system",
+    },
+    {
+        id: 6,
+        sender: "AI Assistant",
+        avatar: "AI",
+        content: "Quote processing initiated. Analyzing updated line items and generating revised PDF...",
+        time: "Just now",
+        type: "ai",
     }
 ]
 
