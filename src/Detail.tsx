@@ -39,6 +39,193 @@ interface Message {
     type: 'system' | 'ai' | 'user' | 'action_processing' | 'action_success';
 }
 
+interface DetailProps {
+    onBack: () => void;
+    onLogout: () => void;
+    onNavigateToWorkspace: () => void;
+}
+
+export default function Detail({ onBack, onLogout, onNavigateToWorkspace }: DetailProps) {
+    const { colorMode, toggleColorMode } = useColorMode()
+    const [messages, setMessages] = useState<Message[]>([
+        { id: 1, sender: 'System', avatar: 'S', content: 'Discrepancy detected in Order #ORD-2055. Stock mismatch for SKU-OFF-2025-003.', time: 'Today, 9:23 AM', type: 'system' },
+        { id: 2, sender: 'AI Assistant', avatar: 'AI', content: <DiscrepancyResolutionFlow />, time: '2 hours ago', type: 'ai' },
+    ])
+    const [inputText, setInputText] = useState('')
+    const [selectedItem, setSelectedItem] = useState(items[2])
+    const bg = useColorModeValue('gray.50', 'gray.900')
+    const textColor = useColorModeValue('gray.800', 'white')
+
+
+    const handleSendMessage = () => {
+        if (!inputText.trim()) return;
+        const newMessage: Message = {
+            id: Date.now(),
+            sender: 'You',
+            avatar: 'JD',
+            content: inputText,
+            time: 'Just now',
+            type: 'user'
+        }
+        setMessages([...messages, newMessage])
+        setInputText('')
+    }
+
+    return (
+        <Box minH="100vh" bg={bg} pb="10" transition="background 0.3s">
+            <Navbar onLogout={onLogout} activeTab="Inventory" onNavigateToWorkspace={onNavigateToWorkspace} />
+
+            <Box pt="24" px="4" maxW="7xl" mx="auto" h="calc(100vh - 2rem)" display="flex" flexDirection="column" gap="6">
+                <Flex justify="space-between" align="center">
+                    <Button variant="ghost" leftIcon={<ChevronLeftIcon />} onClick={onBack}>Back to Inventory</Button>
+                    <HStack spacing="2">
+                        <IconButton
+                            aria-label="Toggle color mode"
+                            icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
+                            onClick={toggleColorMode}
+                            variant="ghost"
+                        />
+                        <Button leftIcon={<Icon as={FaEdit} />} variant="outline">Edit Item</Button>
+                        <Button leftIcon={<Icon as={FaDownload} />} variant="outline">Export Data</Button>
+                        <Menu>
+                            <MenuButton as={IconButton} icon={<Icon as={FaEllipsisH} />} variant="outline" />
+                            <MenuList>
+                                <MenuItem>Archive</MenuItem>
+                                <MenuItem>Delete</MenuItem>
+                            </MenuList>
+                        </Menu>
+                    </HStack>
+                </Flex>
+
+                <Grid templateColumns={{ base: '1fr', lg: '2fr 1fr' }} gap="6" flex="1">
+                    <Box>
+                        <Card>
+                            <CardBody>
+                                <Flex justify="space-between" align="start" mb="4">
+                                    <Box>
+                                        <Heading as="h2" size="lg" mb="1">{selectedItem.name}</Heading>
+                                        <Text fontSize="sm" color="gray.500">SKU: {selectedItem.id}</Text>
+                                    </Box>
+                                    <Badge colorScheme={selectedItem.colorScheme} fontSize="md" px="3" py="1" borderRadius="full">{selectedItem.status}</Badge>
+                                </Flex>
+
+                                <SimpleGrid columns={{ base: 1, md: 2 }} spacing="4" mb="6">
+                                    <VStack align="start" spacing="1">
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.500">Category</Text>
+                                        <Text fontSize="md">{selectedItem.category}</Text>
+                                    </VStack>
+                                    <VStack align="start" spacing="1">
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.500">Properties</Text>
+                                        <Text fontSize="md">{selectedItem.properties}</Text>
+                                    </VStack>
+                                    <VStack align="start" spacing="1">
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.500">Current Stock</Text>
+                                        <Text fontSize="md">{selectedItem.stock}</Text>
+                                    </VStack>
+                                    <VStack align="start" spacing="1">
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.500">Last Updated</Text>
+                                        <Text fontSize="md">2023-10-26 14:30</Text>
+                                    </VStack>
+                                </SimpleGrid>
+
+                                <Divider mb="6" />
+
+                                <Heading as="h3" size="md" mb="4">Stock History</Heading>
+                                <TableContainer>
+                                    <Table variant="simple" size="sm">
+                                        <Thead>
+                                            <Tr>
+                                                <Th>Date</Th>
+                                                <Th>Type</Th>
+                                                <Th isNumeric>Quantity</Th>
+                                                <Th>Source</Th>
+                                            </Tr>
+                                        </Thead>
+                                        <Tbody>
+                                            <Tr>
+                                                <Td>2023-10-26</Td>
+                                                <Td>Inbound</Td>
+                                                <Td isNumeric>+150</Td>
+                                                <Td>Supplier A</Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td>2023-10-20</Td>
+                                                <Td>Outbound</Td>
+                                                <Td isNumeric>-50</Td>
+                                                <Td>Order #12345</Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td>2023-10-15</Td>
+                                                <Td>Adjustment</Td>
+                                                <Td isNumeric>-5</Td>
+                                                <Td>Warehouse Audit</Td>
+                                            </Tr>
+                                        </Tbody>
+                                    </Table>
+                                </TableContainer>
+                            </CardBody>
+                        </Card>
+                    </Box>
+
+                    <Box>
+                        <Card h="full" display="flex" flexDirection="column">
+                            <CardBody flex="1" display="flex" flexDirection="column">
+                                <Heading as="h3" size="md" mb="4">AI Assistant</Heading>
+                                <VStack spacing="4" align="stretch" flex="1" overflowY="auto" pr="2">
+                                    {messages.map((msg, index) => (
+                                        <Flex key={msg.id} justify={msg.type === 'user' ? 'flex-end' : 'flex-start'}>
+                                            <HStack align="start" spacing="3" maxW="70%">
+                                                {msg.type !== 'user' && (
+                                                    <Avatar size="sm" name={msg.sender} src={msg.avatar === 'AI' ? '/ai-avatar.png' : undefined} bg={msg.avatar === 'AI' ? 'purple.500' : 'gray.400'} color="white" />
+                                                )}
+                                                <Box
+                                                    bg={msg.type === 'user' ? 'blue.500' : useColorModeValue('gray.100', 'gray.700')}
+                                                    color={msg.type === 'user' ? 'white' : textColor}
+                                                    px="4"
+                                                    py="2"
+                                                    borderRadius="lg"
+                                                    borderBottomLeftRadius={msg.type === 'user' ? 'lg' : 'none'}
+                                                    borderBottomRightRadius={msg.type === 'user' ? 'none' : 'lg'}
+                                                    boxShadow="sm"
+                                                >
+                                                    {msg.content}
+                                                    <Text fontSize="xs" color={msg.type === 'user' ? 'blue.100' : 'gray.500'} mt="1" textAlign="right">{msg.time}</Text>
+                                                </Box>
+                                                {msg.type === 'user' && (
+                                                    <Avatar size="sm" name={msg.sender} bg="green.500" color="white" />
+                                                )}
+                                            </HStack>
+                                        </Flex>
+                                    ))}
+                                </VStack>
+                                <Flex mt="4">
+                                    <Input
+                                        placeholder="Type your message..."
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleSendMessage();
+                                            }
+                                        }}
+                                        mr="2"
+                                    />
+                                    <IconButton
+                                        colorScheme="blue"
+                                        aria-label="Send message"
+                                        icon={<Icon as={FaPaperPlane} />}
+                                        onClick={handleSendMessage}
+                                    />
+                                </Flex>
+                            </CardBody>
+                        </Card>
+                    </Box>
+                </Grid>
+            </Box>
+        </Box>
+    )
+}
+
 const DiscrepancyActionCard = ({ msg }: { msg: Message }) => {
     const [isRequesting, setIsRequesting] = useState(false)
     const [requestText, setRequestText] = useState('')

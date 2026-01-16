@@ -14,11 +14,11 @@ function App() {
   }
 
   if (currentPage === 'detail') {
-    return <Detail onBack={() => setCurrentPage('dashboard')} />
+    return <Detail onBack={() => setCurrentPage('dashboard')} onLogout={() => setCurrentPage('login')} onNavigateToWorkspace={() => setCurrentPage('workspace')} />
   }
 
   if (currentPage === 'workspace') {
-    return <Workspace onBack={() => setCurrentPage('dashboard')} />
+    return <Workspace onBack={() => setCurrentPage('dashboard')} onLogout={() => setCurrentPage('login')} onNavigateToWorkspace={() => setCurrentPage('workspace')} />
   }
 
   return <Login onLoginSuccess={() => setCurrentPage('dashboard')} />
