@@ -45,7 +45,7 @@ const trackingSteps = [
     { status: 'Customs Hold', date: 'Dec 24, 11:00 AM', location: 'Port of Entry', completed: false, alert: true },
 ]
 
-export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: () => void, onNavigateToDetail: () => void }) {
+export default function Dashboard({ onLogout, onNavigateToDetail, onNavigateToWorkspace }: { onLogout: () => void, onNavigateToDetail: () => void, onNavigateToWorkspace: () => void }) {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const { colorMode, toggleColorMode } = useColorMode()
     const ThemeIcon = colorMode === 'light' ? MoonIcon : SunIcon
@@ -173,7 +173,7 @@ export default function Dashboard({ onLogout, onNavigateToDetail }: { onLogout: 
         <Box minH="100vh" bg={bgMain} fontFamily="body">
             {/* Floating Capsule Navbar */}
             {/* Floating Capsule Navbar */}
-            <Navbar onLogout={onLogout} activeTab="Overview" />
+            <Navbar onLogout={onLogout} activeTab="Overview" onNavigateToWorkspace={onNavigateToWorkspace} />
 
 
             {/* Main Content */}

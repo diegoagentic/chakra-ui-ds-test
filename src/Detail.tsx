@@ -1,3 +1,4 @@
+
 import {
     Box, Flex, Grid, Heading, Text, Button, Input, InputGroup, InputLeftElement,
     IconButton, Badge, Table, Thead, Tbody, Tr, Th, Td, TableContainer,
@@ -8,14 +9,13 @@ import {
     Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverArrow
 } from '@chakra-ui/react'
 import {
-    SearchIcon, ChevronRightIcon, ChevronDownIcon, ChevronUpIcon, AddIcon,
-    CopyIcon, EmailIcon, ViewIcon, CheckCircleIcon,
+    CopyIcon, EmailIcon, ViewIcon, CheckCircleIcon, ChevronRightIcon,
     CloseIcon, WarningIcon, DownloadIcon, AttachmentIcon, MoonIcon, SunIcon, StarIcon, RepeatIcon, ArrowRightIcon,
-    SettingsIcon, InfoIcon, CalendarIcon
+    SettingsIcon, InfoIcon, CalendarIcon, EditIcon, AddIcon, SearchIcon, ChevronDownIcon, ChevronUpIcon
 } from '@chakra-ui/icons'
-import { FaHome, FaBox, FaChartLine, FaClipboardList, FaTh, FaUser, FaCheckCircle, FaList, FaSignOutAlt, FaTruck, FaEdit, FaDownload, FaEllipsisH, FaRobot, FaPaperPlane, FaPlus, FaFileAlt, FaCube, FaClock, FaCheck, FaPen, FaArrowRight } from 'react-icons/fa'
+import { FaHome, FaBox, FaChartLine, FaClipboardList, FaTh, FaUser, FaCheckCircle, FaList, FaSignOutAlt, FaTruck, FaEdit, FaDownload, FaEllipsisH, FaRobot, FaPaperPlane, FaPlus, FaFileAlt, FaCube, FaClock, FaCheck, FaPen, FaArrowRight, FaPencilAlt, FaPaperclip, FaSync, FaExclamationTriangle } from 'react-icons/fa'
 import { useState } from 'react'
-import { useColorMode, Image, Portal, Menu, MenuButton, MenuList, MenuItem, MenuDivider, Avatar, AvatarGroup, Radio, RadioGroup, Stack } from '@chakra-ui/react'
+import { useColorMode, Image, Portal, Menu, MenuButton, MenuList, MenuItem, MenuDivider, Avatar, AvatarGroup, Radio, RadioGroup, Stack, Spinner } from '@chakra-ui/react'
 
 import Navbar from './components/Navbar'
 
@@ -30,56 +30,295 @@ const items = [
     { id: "SKU-OFF-2025-008", name: "Bench Seating 3-Seat", category: "Waiting Series", properties: "Metal / Chrome", stock: 28, status: "Low Stock", colorScheme: 'yellow' },
 ]
 
-const messages = [
-    {
-        id: 1,
-        sender: "System",
-        avatar: "",
-        content: "Order #ORD-2055 has been flagged for manual review due to stock discrepancy.",
-        time: "2 hours ago",
-        type: "system",
-    },
-    {
-        id: 2,
-        sender: "AI Assistant",
-        avatar: "AI",
-        content: "I've detected a 5-item discrepancy between local and remote warehouse counts for SKU-OFF-2025-003. Recommended action: Synchronize with Warehouse DB or perform manual count.",
-        time: "2 hours ago",
-        type: "ai",
-    },
-    {
-        id: 3,
-        sender: "Sarah Chen",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        content: "@InventoryManager I'm verifying the physical stock in Zone B. Will update shortly.",
-        time: "1 hour ago",
-        type: "user",
-    },
-    {
-        id: 4,
-        sender: "Sarah Chen",
-        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        content: "I've contacted the client. They want to proceed with the available items. I've updated the order line items accordingly.",
-        time: "15 mins ago",
-        type: "user",
-    },
-    {
-        id: 5,
-        sender: "System",
-        avatar: "",
-        content: "Sarah Chen triggered context action: Process Quote",
-        time: "Just now",
-        type: "system",
-    },
-    {
-        id: 6,
-        sender: "AI Assistant",
-        avatar: "AI",
-        content: "Quote processing initiated. Analyzing updated line items and generating revised PDF...",
-        time: "Just now",
-        type: "ai",
+interface Message {
+    id: number | string;
+    sender: string;
+    avatar: string;
+    content: React.ReactNode;
+    time: string;
+    type: 'system' | 'ai' | 'user' | 'action_processing' | 'action_success';
+}
+
+const DiscrepancyActionCard = ({ msg }: { msg: Message }) => {
+    const [isRequesting, setIsRequesting] = useState(false)
+    const [requestText, setRequestText] = useState('')
+    const [status, setStatus] = useState<'initial' | 'pending' | 'approved'>('initial')
+    const borderColor = useColorModeValue('gray.200', 'gray.700')
+    const bgSuccess = useColorModeValue('green.50', 'green.900')
+    const borderSuccess = useColorModeValue('green.200', 'green.700')
+
+    const bgWhite = useColorModeValue('white', 'gray.900')
+    const bgGray = useColorModeValue('gray.50', 'gray.800')
+    const textColor = useColorModeValue('gray.800', 'white')
+
+    const handleSubmit = () => {
+        setStatus('pending')
+        setTimeout(() => {
+            setStatus('approved')
+            setIsRequesting(false)
+        }, 2000)
     }
-]
+
+    if (status === 'pending') {
+        return (
+            <Box p="3" borderRadius="lg" bg={bgSuccess} border="1px" borderColor={borderSuccess}>
+                <Flex align="center" gap="2">
+                    <Spinner size="sm" color="green.500" />
+                    <Text fontSize="sm" fontWeight="medium" color="green.600">Requesting approval...</Text>
+                </Flex>
+            </Box>
+        )
+    }
+
+    if (status === 'approved') {
+        return (
+            <Box animation="fade-in 0.5s">
+                <Box p="3" borderRadius="lg" bg={bgSuccess} border="1px" borderColor={borderSuccess}>
+                    <Flex align="center" gap="2" mb="2">
+                        <Badge colorScheme="green" variant="outline">Action Updated</Badge>
+                    </Flex>
+                    <Flex align="center" gap="2" color="green.500" mb="3">
+                        <Icon as={FaCheckCircle} boxSize="5" />
+                        <Text fontSize="sm" fontWeight="medium">Changes approved. PO updated.</Text>
+                    </Flex>
+
+                    <Flex align="center" gap="3" bg={bgWhite} p="3" borderRadius="md" border="1px" borderColor="green.200" _dark={{ borderColor: 'green.800' }}>
+                        <Flex w="10" h="10" borderRadius="md" bg="red.50" color="red.500" align="center" justify="center" border="1px" borderColor="red.100">
+                            <Icon as={FaFileAlt} boxSize="5" />
+                        </Flex>
+                        <Box flex="1">
+                            <Text fontSize="sm" fontWeight="medium">PO_Revised_Final.pdf</Text>
+                            <Text fontSize="xs" color="gray.500">2.4 MB • Generated just now</Text>
+                        </Box>
+                        <IconButton size="sm" icon={<Icon as={FaDownload} />} aria-label="Download" variant="ghost" />
+                    </Flex>
+                </Box>
+            </Box>
+        )
+    }
+
+    return (
+        <Box
+            p="3"
+            borderRadius="lg"
+            bg={isRequesting ? bgWhite : bgSuccess}
+            border="1px"
+            borderColor={isRequesting ? 'blue.400' : borderSuccess}
+            boxShadow={isRequesting ? 'md' : 'none'}
+            transition="all 0.3s"
+        >
+            {!isRequesting ? (
+                <>
+                    <Flex align="center" gap="2" mb="2">
+                        <Badge colorScheme="green" variant="outline">Success</Badge>
+                    </Flex>
+                    <Text fontSize="sm" mb="2">{msg.content}</Text>
+
+                    <VStack spacing="3" align="stretch" mt="3">
+                        <Flex align="center" gap="3" bg={bgWhite} p="3" borderRadius="md" border="1px" borderColor="green.200" _dark={{ borderColor: 'green.800' }}>
+                            <Flex w="10" h="10" borderRadius="md" bg="red.50" color="red.500" align="center" justify="center" border="1px" borderColor="red.100">
+                                <Icon as={FaFileAlt} boxSize="5" />
+                            </Flex>
+                            <Box flex="1">
+                                <Text fontSize="sm" fontWeight="medium">PO_ORD-2055_Final.pdf</Text>
+                                <Text fontSize="xs" color="gray.500">2.4 MB • Generated just now</Text>
+                            </Box>
+                            <IconButton size="sm" icon={<Icon as={FaDownload} />} aria-label="Download" variant="ghost" />
+                        </Flex>
+
+                        <Box pl="4" borderLeft="4px solid" borderColor="orange.500" py="2" my="2">
+                            <Flex gap="3">
+                                <Box flex="1">
+                                    <Flex align="center" gap="2" mb="1">
+                                        <Icon as={WarningIcon} color="orange.500" boxSize="4" />
+                                        <Text fontSize="sm" fontWeight="bold" color={textColor}>Attention Needed</Text>
+                                    </Flex>
+                                    <Text fontSize="sm" color="gray.500" mt="1">
+                                        Discrepancy detected for <Text as="span" fontWeight="bold" color={textColor}>SKU-OFF-2025-003</Text>:
+                                    </Text>
+                                    <HStack mt="2" spacing="4" fontSize="xs">
+                                        <HStack>
+                                            <Text fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="10px">Warehouse</Text>
+                                            <Text fontFamily="monospace" fontWeight="medium" bg={bgGray} px="2" py="0.5" borderRadius="md">42</Text>
+                                        </HStack>
+                                        <Box w="1px" h="16px" bg="gray.300" _dark={{ bg: 'gray.600' }} />
+                                        <HStack>
+                                            <Text fontWeight="bold" color="gray.500" textTransform="uppercase" fontSize="10px">Local</Text>
+                                            <Text fontFamily="monospace" fontWeight="medium" bg={bgGray} px="2" py="0.5" borderRadius="md">35</Text>
+                                        </HStack>
+                                    </HStack>
+                                </Box>
+                            </Flex>
+                        </Box>
+
+                        <HStack spacing="3">
+                            <Button size="sm" bg={useColorModeValue('gray.800', 'white')} color={useColorModeValue('white', 'gray.900')} _hover={{ bg: useColorModeValue('gray.700', 'gray.100') }}>Sync Database</Button>
+                            <Button size="sm" variant="outline" borderColor={borderColor}>Resolve Manually</Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                leftIcon={<Icon as={EditIcon} />}
+                                ml="auto"
+                                onClick={() => setIsRequesting(true)}
+                            >
+                                Request Changes
+                            </Button>
+                        </HStack>
+
+                        <Box bg={bgWhite} p="3" borderRadius="md" border="1px" borderColor="green.200" _dark={{ borderColor: 'green.800' }}>
+                            <Text fontSize="xs" fontWeight="bold" color="gray.500" mb="2" textTransform="uppercase">AI Summary</Text>
+                            <VStack spacing="1" align="start">
+                                <Flex gap="2" align="start">
+                                    <Icon as={FaCheck} color="green.500" mt="1" boxSize="3" />
+                                    <Text fontSize="xs">Updated SKU-OFF-2025-003 stock count to 42</Text>
+                                </Flex>
+                                <Flex gap="2" align="start">
+                                    <Icon as={FaCheck} color="green.500" mt="1" boxSize="3" />
+                                    <Text fontSize="xs">Applied 5% bulk discount for &gt;500 units</Text>
+                                </Flex>
+                            </VStack>
+                        </Box>
+                    </VStack>
+                </>
+            ) : (
+                <VStack spacing="4" align="stretch" animation="fade-in 0.3s">
+                    <Flex justify="space-between" align="center">
+                        <Text fontSize="sm" fontWeight="semibold">Describe required changes:</Text>
+                        <IconButton size="xs" aria-label="Cancel" icon={<CloseIcon />} variant="ghost" onClick={() => setIsRequesting(false)} />
+                    </Flex>
+                    <Textarea
+                        placeholder="E.g., Update weight for ORD-2054 to 48kg..."
+                        rows={3}
+                        bg={bgGray}
+                        fontSize="sm"
+                        autoFocus
+                        value={requestText}
+                        onChange={(e) => setRequestText(e.target.value)}
+                    />
+                    <Flex justify="space-between" align="center">
+                        <Button size="sm" variant="ghost" leftIcon={<Icon as={AttachmentIcon} />}>
+                            Attach File
+                        </Button>
+                        <HStack>
+                            <Button size="sm" variant="ghost" onClick={() => setIsRequesting(false)}>Cancel</Button>
+                            <Button size="sm" colorScheme="blue" onClick={handleSubmit}>Submit Request</Button>
+                        </HStack>
+                    </Flex>
+                </VStack>
+            )}
+        </Box>
+    )
+}
+
+const DiscrepancyResolutionFlow = () => {
+    const [status, setStatus] = useState<'initial' | 'requesting' | 'pending' | 'approved'>('initial')
+    const [requestText, setRequestText] = useState('')
+    const bg = useColorModeValue('white', 'gray.800')
+    const orangeColor = useColorModeValue('orange.600', 'orange.300')
+
+    const handleRequest = () => {
+        setStatus('pending')
+        setTimeout(() => setStatus('approved'), 3000)
+    }
+
+    if (status === 'initial') {
+        return (
+            <VStack align="stretch" spacing={3}>
+                <HStack spacing={2} color={orangeColor} fontWeight="bold">
+                    <Icon as={FaExclamationTriangle} />
+                    <Text>Found 3 discrepancies in recent shipments.</Text>
+                </HStack>
+                <VStack align="stretch" pl={6} spacing={1}>
+                    <HStack spacing={2}>
+                        <Icon as={FaExclamationTriangle} color="orange.500" boxSize={3} />
+                        <Text fontSize="sm" color="gray.500">Order #ORD-2054: Weight mismatch</Text>
+                    </HStack>
+                    <HStack spacing={2}>
+                        <Icon as={FaExclamationTriangle} color="orange.500" boxSize={3} />
+                        <Text fontSize="sm" color="gray.500">Order #ORD-2051: Timestamp sync error</Text>
+                    </HStack>
+                    <HStack spacing={2}>
+                        <Icon as={FaExclamationTriangle} color="orange.500" boxSize={3} />
+                        <Text fontSize="sm" color="gray.500">Order #ORD-2048: Missing carrier update</Text>
+                    </HStack>
+                </VStack>
+                <HStack spacing={2} mt={1}>
+                    <Button size="xs" variant="outline" colorScheme="blue" leftIcon={<Icon as={FaSync} />}>
+                        Sync & Report
+                    </Button>
+                    <Button
+                        size="xs" variant="outline"
+                        leftIcon={<Icon as={FaPencilAlt} />}
+                        onClick={() => setStatus('requesting')}
+                    >
+                        Request Changes
+                    </Button>
+                </HStack>
+            </VStack>
+        )
+    }
+
+    if (status === 'requesting') {
+        return (
+            <VStack align="stretch" spacing={3} className="animate-in fade-in slide-in-from-bottom-2">
+                <Text fontSize="sm" fontWeight="medium">Describe required changes:</Text>
+                <Textarea
+                    placeholder="E.g., Update weight for ORD-2054 to 48kg..."
+                    value={requestText}
+                    onChange={(e) => setRequestText(e.target.value)}
+                    size="sm"
+                    minH="80px"
+                />
+                <Flex justify="space-between" align="center">
+                    <Button size="xs" variant="ghost" colorScheme="gray" leftIcon={<Icon as={FaPaperclip} />}>
+                        Attach File
+                    </Button>
+                    <HStack spacing={2}>
+                        <Button size="xs" variant="ghost" onClick={() => setStatus('initial')}>Cancel</Button>
+                        <Button size="xs" colorScheme="blue" onClick={handleRequest}>Submit Request</Button>
+                    </HStack>
+                </Flex>
+            </VStack>
+        )
+    }
+
+    if (status === 'pending') {
+        return (
+            <VStack align="stretch" spacing={3} className="animate-in fade-in">
+                <HStack spacing={2} color="blue.500">
+                    <Icon as={FaSync} className="animate-spin" />
+                    <Text>Requesting approval from Logistics Manager...</Text>
+                </HStack>
+            </VStack>
+        )
+    }
+
+    if (status === 'approved') {
+        return (
+            <VStack align="stretch" spacing={3} className="animate-in fade-in">
+                <HStack spacing={2} color="green.500" fontWeight="bold">
+                    <Icon as={FaCheckCircle} />
+                    <Text>Changes approved. PO updated.</Text>
+                </HStack>
+                <Box bg={useColorModeValue('gray.50', 'whiteAlpha.100')} p={3} borderRadius="md" borderWidth="1px">
+                    <Flex justify="space-between" align="center">
+                        <HStack spacing={3}>
+                            <Flex w={8} h={8} bg="red.100" color="red.500" borderRadius="md" align="center" justify="center">
+                                <Icon as={FaFileAlt} />
+                            </Flex>
+                            <Box>
+                                <Text fontSize="sm" fontWeight="medium">PO_Revised_Final.pdf</Text>
+                                <Text fontSize="xs" color="gray.500">Updated just now</Text>
+                            </Box>
+                        </HStack>
+                        <Button size="xs" variant="ghost" colorScheme="blue">Download</Button>
+                    </Flex>
+                </Box>
+            </VStack>
+        )
+    }
+    return null
+}
 
 const collaborators = [
     { name: "Sarah Chen", role: "Logistics Mgr", status: "online", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" },
@@ -130,6 +369,65 @@ export default function Detail({ onBack }: { onBack: () => void }) {
     const colorIcon = useColorModeValue('gray.600', 'gray.400')
     const checkboxBorder = useColorModeValue('gray.300', 'gray.600')
     const bgFloating = useColorModeValue('rgba(255, 255, 255, 0.8)', 'rgba(23, 25, 35, 0.8)')
+
+    const [messages, setMessages] = useState<Message[]>([
+        {
+            id: 1,
+            sender: "System",
+            avatar: "",
+            content: "Order #ORD-2055 has been flagged for manual review due to stock discrepancy.",
+            time: "2 hours ago",
+            type: "system",
+        },
+        {
+            id: 2,
+            sender: "AI Assistant",
+            avatar: "AI",
+            content: <DiscrepancyResolutionFlow />,
+            time: "2 hours ago",
+            type: "ai",
+        },
+        {
+            id: 3,
+            sender: "Sarah Chen",
+            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            content: "@InventoryManager I'm verifying the physical stock in Zone B. Will update shortly.",
+            time: "1 hour ago",
+            type: "user",
+        },
+        {
+            id: 4,
+            sender: "Sarah Chen",
+            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            content: "I've contacted the client. They want to proceed with the available items. I've updated the order line items accordingly.",
+            time: "15 mins ago",
+            type: "user",
+        },
+        {
+            id: 5,
+            sender: "System",
+            avatar: "",
+            content: "Sarah Chen triggered context action: Process Quote",
+            time: "Just now",
+            type: "system",
+        },
+        {
+            id: 6,
+            sender: "AI Assistant",
+            avatar: "AI",
+            content: "Quote processing initiated. Analyzing updated line items and generating revised PDF...",
+            time: "Just now",
+            type: "action_processing",
+        },
+        {
+            id: 7,
+            sender: "AI Assistant",
+            avatar: "AI",
+            content: "Analysis complete. I've generated the revised Purchase Order, but found stock discrepancies that require attention.",
+            time: "Just now",
+            type: "action_success",
+        }
+    ])
 
     const handleLogout = () => {
         console.log("Logout triggered")
@@ -545,27 +843,118 @@ export default function Detail({ onBack }: { onBack: () => void }) {
                                     <Box p="4" minH="800px">
                                         <VStack spacing="4" align="stretch">
                                             <Flex justify="center"><Badge variant="outline" fontSize="xs">Today, 9:23 AM</Badge></Flex>
+                                            {/* Assuming 'messages' array is defined here or imported */}
+                                            {/* Example messages array structure (replace with actual definition if available) */}
+                                            {/* This is a placeholder for where the messages array would be defined */}
+                                            {/* For the purpose of this edit, we're assuming it's defined just before this map */}
+                                            {/* If 'messages' is a state variable, this would be part of its initial state */}
+                                            {/* For demonstration, let's assume a local definition for the edit context */}
+                                            {/*
+                                            const messages = [
+                                                {
+                                                    id: 1,
+                                                    sender: "System",
+                                                    avatar: "https://bit.ly/dan-abramov",
+                                                    content: "Order #ORD-2055 created by John Doe.",
+                                                    time: "9:00 AM",
+                                                    type: "system",
+                                                },
+                                                {
+                                                    id: 2,
+                                                    sender: "AI Assistant",
+                                                    avatar: "AI",
+                                                    content: "Potential cost savings identified for SKU-OFF-2025-003. Suggesting alternative supplier.",
+                                                    time: "9:05 AM",
+                                                    type: "ai",
+                                                },
+                                                {
+                                                    id: 3,
+                                                    sender: "You",
+                                                    avatar: "https://bit.ly/kent-c-dodds",
+                                                    content: "Can you generate a new Purchase Order with the suggested supplier for SKU-OFF-2025-003?",
+                                                    time: "9:10 AM",
+                                                    type: "user",
+                                                },
+                                                {
+                                                    id: 4,
+                                                    sender: "AI Assistant",
+                                                    avatar: "AI",
+                                                    content: "Generating new Purchase Order. Please confirm details.",
+                                                    time: "9:11 AM",
+                                                    type: "ai",
+                                                },
+                                                {
+                                                    id: 5,
+                                                    sender: "You",
+                                                    avatar: "https://bit.ly/kent-c-dodds",
+                                                    content: "Confirmed. Proceed with generation.",
+                                                    time: "9:12 AM",
+                                                    type: "user",
+                                                },
+                                                {
+                                                    id: 6,
+                                                    sender: "AI Assistant",
+                                                    avatar: "AI",
+                                                    content: "Processing your request to generate a new Purchase Order for ORD-2055...",
+                                                    time: "Just now",
+                                                    type: "action_processing",
+                                                },
+                                                {
+                                                    id: 7,
+                                                    sender: "AI Assistant",
+                                                    avatar: "AI",
+                                                    content: "Analysis complete. I've generated the revised Purchase Order and updated the stock database.",
+                                                    time: "Just now",
+                                                    type: "action_success",
+                                                }
+                                            ];
+                                            */}
                                             {messages.map((msg) => (
                                                 <Flex key={msg.id} gap="3" direction={msg.type === 'user' ? 'row-reverse' : 'row'}>
                                                     {msg.type !== 'user' && (
-                                                        <Avatar size="sm" src={msg.avatar === 'AI' ? undefined : msg.avatar} icon={msg.avatar === 'AI' ? <Icon as={FaRobot} /> : undefined} bg={msg.avatar === 'AI' ? 'purple.100' : undefined} color={msg.avatar === 'AI' ? 'purple.600' : undefined} />
+                                                        msg.type === 'action_processing' ? (
+                                                            <Flex w="8" h="8" borderRadius="full" bg="blue.100" color="blue.600" align="center" justify="center" border="1px" borderColor="blue.200">
+                                                                <Icon as={FaFileAlt} boxSize="4" />
+                                                            </Flex>
+                                                        ) : msg.type === 'action_success' ? (
+                                                            <Flex w="8" h="8" borderRadius="full" bg="green.100" color="green.600" align="center" justify="center" border="1px" borderColor="green.200">
+                                                                <Icon as={FaCheckCircle} boxSize="4" />
+                                                            </Flex>
+                                                        ) : (
+                                                            <Avatar size="sm" src={msg.avatar === 'AI' ? undefined : msg.avatar} icon={msg.avatar === 'AI' ? <Icon as={FaRobot} /> : undefined} bg={msg.avatar === 'AI' ? 'purple.100' : undefined} color={msg.avatar === 'AI' ? 'purple.600' : undefined} />
+                                                        )
                                                     )}
                                                     <Box maxW="80%">
                                                         <Flex align="center" gap="2" justify={msg.type === 'user' ? 'flex-end' : 'flex-start'} mb="1">
                                                             {msg.type !== 'user' && <Text fontSize="xs" fontWeight="bold">{msg.sender}</Text>}
                                                             <Text fontSize="xs" color="gray.500">{msg.time}</Text>
                                                         </Flex>
-                                                        <Box p="3" borderRadius="lg" bg={msg.type === 'user' ? 'blue.500' : bgCard} color={msg.type === 'user' ? 'white' : textColorMain} border={msg.type === 'user' ? 'none' : '1px solid'} borderColor={borderColor}>
-                                                            <Text fontSize="sm">{msg.content}</Text>
-                                                            <Box mt="2">
-                                                                {msg.type === 'ai' && (
-                                                                    <HStack spacing="2">
-                                                                        <Button size="xs" variant="outline" colorScheme="purple">Create Task</Button>
-                                                                        <Button size="xs" variant="ghost">Dismiss</Button>
-                                                                    </HStack>
-                                                                )}
+                                                        {msg.type === 'action_processing' ? (
+                                                            <Box p="3" borderRadius="lg" bg="blue.50" color={textColorMain} border="1px" borderColor="blue.200" _dark={{ bg: 'blue.900', borderColor: 'blue.700' }}>
+                                                                <Flex align="center" gap="2" mb="2">
+                                                                    <Badge colorScheme="blue" variant="outline">Action</Badge>
+                                                                </Flex>
+                                                                <Text fontSize="sm" mb="2">{typeof msg.content === 'string' ? msg.content : msg.content}</Text>
+                                                                <Flex align="center" gap="2" bg={useColorModeValue('white', 'gray.900')} p="2" borderRadius="md" border="1px" borderColor="blue.100" _dark={{ borderColor: 'blue.800' }}>
+                                                                    <Spinner size="xs" color="blue.500" />
+                                                                    <Text fontSize="xs" fontWeight="medium" color="blue.500">Processing request...</Text>
+                                                                </Flex>
                                                             </Box>
-                                                        </Box>
+                                                        ) : msg.type === 'action_success' ? (
+                                                            <DiscrepancyActionCard msg={msg} />
+                                                        ) : (
+                                                            <Box p="3" borderRadius="lg" bg={msg.type === 'user' ? 'blue.500' : bgCard} color={msg.type === 'user' ? 'white' : textColorMain} border={msg.type === 'user' ? 'none' : '1px solid'} borderColor={borderColor}>
+                                                                <Text fontSize="sm">{typeof msg.content === 'string' ? msg.content : msg.content}</Text>
+                                                                <Box mt="2">
+                                                                    {msg.type === 'ai' && (
+                                                                        <HStack spacing="2">
+                                                                            <Button size="xs" variant="outline" colorScheme="purple">Create Task</Button>
+                                                                            <Button size="xs" variant="ghost">Dismiss</Button>
+                                                                        </HStack>
+                                                                    )}
+                                                                </Box>
+                                                            </Box>
+                                                        )}
                                                     </Box>
                                                 </Flex>
                                             ))}
@@ -581,7 +970,7 @@ export default function Detail({ onBack }: { onBack: () => void }) {
                                 </Flex>
 
                                 {/* Contextual Quick Actions Sidebar */}
-                                <Flex direction="column" w="72" display={{ base: 'none', '2xl': 'flex' }} bg={useColorModeValue('gray.50', 'gray.900')} borderLeft="1px" borderColor={borderColor} h="full" animation="slideInRight 0.5s">
+                                <Flex direction="column" w="72" display={{ base: 'none', 'lg': 'flex' }} bg={useColorModeValue('gray.50', 'gray.900')} borderLeft="1px" borderColor={borderColor} h="full" animation="slideInRight 0.5s">
                                     <Box p="5" borderBottom="1px" borderColor={borderColor} bg={useColorModeValue('white', 'gray.800')}>
                                         <Flex justify="space-between" align="center" mb="2">
                                             <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase" letterSpacing="wider">Context</Text>
@@ -602,7 +991,7 @@ export default function Detail({ onBack }: { onBack: () => void }) {
                                         <Box mb="6">
                                             <Text fontSize="xs" fontWeight="medium" color="gray.500" mb="3" textTransform="uppercase" letterSpacing="wide">Suggested Actions</Text>
                                             <VStack spacing="3">
-                                                <Button h="auto" p="3" w="full" variant="outline" borderColor={borderColor} bg={bgCard} _hover={{ borderColor: 'blue.400', boxShadow: 'md' }} justifyContent="flex-start">
+                                                <Button onClick={() => setIsDocumentModalOpen(true)} h="auto" p="3" w="full" variant="outline" borderColor={borderColor} bg={bgCard} _hover={{ borderColor: 'blue.400', boxShadow: 'md' }} justifyContent="flex-start">
                                                     <Flex gap="3" align="flex-start" w="full">
                                                         <Flex align="center" justify="center" w="8" h="8" borderRadius="lg" bg={useColorModeValue('blue.50', 'blue.900')} color={useColorModeValue('blue.600', 'blue.300')}>
                                                             <Icon as={FaFileAlt} boxSize="4" />
@@ -719,7 +1108,88 @@ export default function Detail({ onBack }: { onBack: () => void }) {
                 </ModalContent>
             </Modal>
 
-        </Box>
+            <Modal isOpen={isDocumentModalOpen} onClose={() => setIsDocumentModalOpen(false)} size="4xl" isCentered>
+                <ModalOverlay backdropFilter="blur(5px)" bg="blackAlpha.300" />
+                <ModalContent borderRadius="xl" overflow="hidden">
+                    <ModalHeader borderBottomWidth="1px">
+                        <Flex justify="space-between" align="center">
+                            <Box>
+                                <Heading size="md">Order Document Preview</Heading>
+                                <Text fontSize="sm" color="gray.500" fontWeight="normal">Previewing Purchase Order #PO-2025-001</Text>
+                            </Box>
+                        </Flex>
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody p={0} bg="gray.50" _dark={{ bg: 'gray.900' }}>
+                        <Box p={8}>
+                            <Box bg="white" color="black" p={10} borderRadius="md" borderWidth="1px" h="600px" overflowY="auto" boxShadow="sm">
+                                <Flex justify="space-between" align="flex-end" mb={6} pb={4} borderBottom="2px solid black">
+                                    <Heading size="lg" textTransform="uppercase">Purchase Order</Heading>
+                                    <Box textAlign="right">
+                                        <Text fontWeight="bold" fontSize="lg">STRATA INC.</Text>
+                                        <Text fontSize="sm">123 Innovation Dr., Tech City</Text>
+                                    </Box>
+                                </Flex>
+
+                                <Flex justify="space-between" mb={8}>
+                                    <Box>
+                                        <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={1} textTransform="uppercase">VENDOR</Text>
+                                        <Text fontWeight="bold">OfficeSupplies Co.</Text>
+                                        <Text fontSize="sm">555 Supplier Lane</Text>
+                                    </Box>
+                                    <Box textAlign="right">
+                                        <Flex justify="space-between" w="200px" mb={1}>
+                                            <Text fontSize="sm" fontWeight="bold" color="gray.500">PO #:</Text>
+                                            <Text fontSize="sm" fontWeight="bold">PO-2025-001</Text>
+                                        </Flex>
+                                        <Flex justify="space-between" w="200px">
+                                            <Text fontSize="sm" fontWeight="bold" color="gray.500">DATE:</Text>
+                                            <Text fontSize="sm">Jan 12, 2026</Text>
+                                        </Flex>
+                                    </Box>
+                                </Flex>
+
+                                <Box mb={8}>
+                                    <Flex bg="gray.100" p={2} fontWeight="bold" fontSize="sm" mb={2}>
+                                        <Box flex={2}>ITEM</Box>
+                                        <Box flex={1} textAlign="right">QTY</Box>
+                                        <Box flex={1} textAlign="right">UNIT PRICE</Box>
+                                        <Box flex={1} textAlign="right">TOTAL</Box>
+                                    </Flex>
+                                    <Flex p={2} borderBottom="1px solid" borderColor="gray.100">
+                                        <Box flex={2}>
+                                            <Text fontWeight="bold" fontSize="sm">{selectedItem.name}</Text>
+                                            <Text fontSize="xs" color="gray.500">{selectedItem.id}</Text>
+                                        </Box>
+                                        <Box flex={1} textAlign="right" fontSize="sm">50</Box>
+                                        <Box flex={1} textAlign="right" fontSize="sm">$45.00</Box>
+                                        <Box flex={1} textAlign="right" fontSize="sm">$2,250.00</Box>
+                                    </Flex>
+                                </Box>
+
+                                <Flex justify="flex-end">
+                                    <Box w="250px">
+                                        <Flex justify="space-between" mb={2}>
+                                            <Text fontSize="sm" color="gray.500">Subtotal:</Text>
+                                            <Text fontSize="sm" fontWeight="bold">$2,250.00</Text>
+                                        </Flex>
+                                        <Flex justify="space-between" align="center" mt={2} pt={2} borderTop="1px solid" borderColor="gray.100">
+                                            <Text fontSize="lg" fontWeight="bold">TOTAL:</Text>
+                                            <Text fontSize="xl" fontWeight="bold" color="blue.600">$2,250.00</Text>
+                                        </Flex>
+                                    </Box>
+                                </Flex>
+                            </Box>
+                        </Box>
+                    </ModalBody>
+                    <ModalFooter bg="gray.50" _dark={{ bg: 'gray.900' }} borderTopWidth="1px" borderColor={borderColor}>
+                        <Button variant="ghost" mr={3} onClick={() => setIsDocumentModalOpen(false)}>Close</Button>
+                        <Button colorScheme="blue">Download PDF</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+        </Box >
     )
 }
 

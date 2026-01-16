@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react'
 import {
     FaHome, FaBox, FaChartLine, FaClipboardList, FaTh,
-    FaSignOutAlt, FaUser, FaCheckCircle, FaCalendar, FaList
+    FaSignOutAlt, FaUser, FaCheckCircle, FaCalendar, FaList, FaBriefcase
 } from 'react-icons/fa'
 import { MoonIcon, SunIcon } from '@chakra-ui/icons'
 import { useState } from 'react'
@@ -53,12 +53,49 @@ function NavItem({ icon, label, isActive = false }: { icon: React.ElementType, l
     )
 }
 
+
+
+function AppItem({ app }: { app: any }) {
+    const bg = useColorModeValue(app.bg, app.darkBg)
+    const highlightedBg = useColorModeValue('blue.50', 'whiteAlpha.100')
+    const textColorSecondary = useColorModeValue('gray.600', 'gray.300')
+    const textColorMain = useColorModeValue('gray.900', 'white')
+
+    return (
+        <VStack
+            cursor="pointer"
+            role="group"
+            transition="all 0.2s"
+            _hover={{ transform: 'scale(1.05)' }}
+            bg={app.isHighlighted ? highlightedBg : 'transparent'}
+            p={app.isHighlighted ? 2 : 0}
+            onClick={app.onClick}
+        >
+            <Flex
+                w="12" h="12"
+                align="center" justify="center"
+                rounded="xl"
+                bg={bg}
+                color={app.color}
+                boxShadow="sm"
+                mb="1"
+                border={app.isHighlighted ? '2px solid' : 'none'}
+                borderColor={app.isHighlighted ? 'blue.400' : 'transparent'}
+            >
+                <Box as={app.icon} boxSize="5" />
+            </Flex>
+            <Text fontSize="xs" fontWeight={app.isHighlighted ? "bold" : "medium"} color={app.isHighlighted ? "blue.500" : textColorSecondary} _groupHover={{ color: textColorMain }}>{app.label}</Text>
+        </VStack>
+    )
+}
+
 interface NavbarProps {
     onLogout: () => void;
     activeTab?: 'Overview' | 'Inventory' | 'Production' | 'Orders';
+    onNavigateToWorkspace: () => void;
 }
 
-export default function Navbar({ onLogout, activeTab = 'Overview' }: NavbarProps) {
+export default function Navbar({ onLogout, activeTab = 'Overview', onNavigateToWorkspace }: NavbarProps) {
     const { colorMode, toggleColorMode } = useColorMode()
     const ThemeIcon = colorMode === 'light' ? MoonIcon : SunIcon
     const [isAppsOpen, setIsAppsOpen] = useState(false)
@@ -69,6 +106,8 @@ export default function Navbar({ onLogout, activeTab = 'Overview' }: NavbarProps
     const borderColor = useColorModeValue('gray.200', 'gray.800')
     const textColorMain = useColorModeValue('gray.900', 'white')
     const textColorSecondary = useColorModeValue('gray.600', 'gray.300')
+    const appsMenuBg = useColorModeValue('rgba(255, 255, 255, 0.85)', 'rgba(23, 25, 35, 0.85)')
+    const appsMenuBorderColor = useColorModeValue('blackAlpha.200', 'whiteAlpha.200')
 
     return (
         <Box
@@ -130,10 +169,10 @@ export default function Navbar({ onLogout, activeTab = 'Overview' }: NavbarProps
                                 onClick={() => setIsAppsOpen(false)}
                             />
                             <Box
-                                bg={useColorModeValue('rgba(255, 255, 255, 0.85)', 'rgba(23, 25, 35, 0.85)')}
+                                bg={appsMenuBg}
                                 backdropFilter="blur(16px)"
                                 border="1px solid"
-                                borderColor={useColorModeValue('blackAlpha.200', 'whiteAlpha.200')}
+                                borderColor={appsMenuBorderColor}
                                 w="400px"
                                 borderRadius="2xl"
                                 boxShadow="2xl"
@@ -147,6 +186,7 @@ export default function Navbar({ onLogout, activeTab = 'Overview' }: NavbarProps
                             >
                                 <SimpleGrid columns={3} spacing="6">
                                     {[
+                                        { icon: FaBriefcase, label: "My Work Space", color: "blue.600", bg: "blue.100", darkBg: "blue.800", isHighlighted: true, onClick: onNavigateToWorkspace },
                                         { icon: FaHome, label: "Portal", color: "blue.500", bg: "blue.50", darkBg: "blue.900" },
                                         { icon: FaUser, label: "CRM", color: "purple.500", bg: "purple.50", darkBg: "purple.900" },
                                         { icon: FaClipboardList, label: "Invoice", color: "green.500", bg: "green.50", darkBg: "green.900" },
@@ -157,26 +197,7 @@ export default function Navbar({ onLogout, activeTab = 'Overview' }: NavbarProps
                                         { icon: FaCalendar, label: "Calendar", color: "red.500", bg: "red.50", darkBg: "red.900" },
                                         { icon: FaList, label: "More", color: "gray.500", bg: "gray.100", darkBg: "gray.700" },
                                     ].map((app, i) => (
-                                        <VStack
-                                            key={i}
-                                            cursor="pointer"
-                                            role="group"
-                                            transition="all 0.2s"
-                                            _hover={{ transform: 'scale(1.05)' }}
-                                        >
-                                            <Flex
-                                                w="12" h="12"
-                                                align="center" justify="center"
-                                                rounded="xl"
-                                                bg={useColorModeValue(app.bg, app.darkBg)}
-                                                color={app.color}
-                                                boxShadow="sm"
-                                                mb="1"
-                                            >
-                                                <Box as={app.icon} boxSize="5" />
-                                            </Flex>
-                                            <Text fontSize="xs" fontWeight="medium" color={textColorSecondary} _groupHover={{ color: textColorMain }}>{app.label}</Text>
-                                        </VStack>
+                                        <AppItem key={i} app={app} />
                                     ))}
                                 </SimpleGrid>
                             </Box>
